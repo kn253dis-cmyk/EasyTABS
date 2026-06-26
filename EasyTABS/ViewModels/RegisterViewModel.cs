@@ -1,3 +1,4 @@
+using EasyTABS.Entity;
 using System.Windows.Input;
 
 namespace EasyTABS.ViewModels
@@ -53,8 +54,7 @@ namespace EasyTABS.ViewModels
         public RegisterViewModel()
         {
             RegisterCommand = new RelayCommand(async _ => await DoRegisterAsync());
-            GoToLoginCommand = new RelayCommand(async _ =>
-                await Shell.Current.GoToAsync(".."));
+            GoToLoginCommand = new RelayCommand(async _ => await Shell.Current.GoToAsync(".."));
         }
 
         private async Task DoRegisterAsync()
@@ -81,7 +81,36 @@ namespace EasyTABS.ViewModels
                 return;
             }
 
-            // TODO: виклик сервісу реєстрації.
+            try
+            {
+                using var db = new EasyTABS.Data.Database();
+
+                // Перевірка, чи email/нікнейм уже зайняті
+                bool exists = db.Users.Any(u => u.Email == Email || u.NickName == Nickname);
+                if (exists)
+                {
+                    ErrorMessage = "Користувач з таким email або нікнеймом вже існує";
+                    return;
+                }
+
+                string hashedPassword = db.HashPassword(Password);
+                var newUser = new User
+                {
+                    Password = hashedPassword,
+                    Email = Email,
+                    NickName = Nickname
+                };
+
+                db.Add(newUser);
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "Не вдалося створити акаунт. Спробуйте ще раз.";
+                System.Diagnostics.Debug.WriteLine($"Register error: {ex}");
+                return;
+            }
+
             await Shell.Current.DisplayAlert("Готово", "Акаунт створено", "OK");
             await Shell.Current.GoToAsync("..");
         }
