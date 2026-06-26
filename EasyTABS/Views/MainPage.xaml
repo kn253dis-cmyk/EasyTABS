@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:EasyTABS.ViewModels"
+             xmlns:models="clr-namespace:EasyTABS.Models"
+             x:Class="EasyTABS.Views.MainPage"
+             x:DataType="vm:MainViewModel"
+             Title="EasyTABS"
+             BackgroundColor="#121212">
+
+    <ContentPage.BindingContext>
+        <vm:MainViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#1E1E24" Offset="0" />
+                <GradientStop Color="#121212" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Border Stroke="Transparent"
+                BackgroundColor="#202124"
+                Padding="20"
+                Margin="16">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="20" />
+            </Border.StrokeShape>
+
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="0">
+
+                <!-- Рядок пошуку -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,0,16">
+                    <Border Grid.Column="0" Style="{StaticResource FieldBorder}">
+                        <Entry Placeholder="Знайти пісню..."
+                               Text="{Binding SearchText}"
+                               TextColor="White"
+                               PlaceholderColor="#808080"
+                               BackgroundColor="Transparent"
+                               FontSize="16"
+                               HeightRequest="50" />
+                    </Border>
+
+                    <Button Grid.Column="1"
+                            Text="&#xe8b6;"
+                            FontFamily="MaterialSymbols"
+                            FontSize="22"
+                            Command="{Binding SearchCommand}"
+                            WidthRequest="50"
+                            HeightRequest="50"
+                            BackgroundColor="#8A2BE2"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Padding="0" />
+                </Grid>
+
+                <!-- Список пісень -->
+                <Grid Grid.Row="1" RowDefinitions="Auto,*">
+                    <Label Grid.Row="0"
+                           Text="Усі пісні"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           Margin="4,0,0,10" />
+
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding Songs}"
+                                    SelectionMode="Single"
+                                    SelectedItem="{Binding SelectedSong}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Song">
+                                <Border BackgroundColor="#2A2D34"
+                                        Stroke="Transparent"
+                                        Padding="10"
+                                        Margin="0,0,0,8">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                                        <Border Grid.Column="0"
+                                                WidthRequest="55"
+                                                HeightRequest="55"
+                                                Stroke="Transparent">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="8" />
+                                            </Border.StrokeShape>
+                                            <Image Source="{Binding AlbumCoverPath}"
+                                                   Aspect="AspectFill" />
+                                        </Border>
+
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                            <Label Text="{Binding Title}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="16"
+                                                   TextColor="White" />
+                                            <Label Text="{Binding Artist}"
+                                                   FontSize="13"
+                                                   TextColor="#B0B0B0"
+                                                   Margin="0,4,0,0" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Спливаючі підказки поверх списку -->
+                    <Border Grid.Row="1"
+                            BackgroundColor="#2A2D34"
+                            Stroke="#404040"
+                            Padding="0"
+                            Margin="0,4,0,0"
+                            VerticalOptions="Start"
+                            MaximumHeightRequest="260"
+                            IsVisible="{Binding IsSuggestionsVisible}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+                        <CollectionView ItemsSource="{Binding Suggestions}"
+                                        SelectionMode="Single"
+                                        SelectedItem="{Binding SelectedSong}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:Song">
+                                    <VerticalStackLayout Padding="12,8">
+                                        <Label Text="{Binding Title}"
+                                               FontAttributes="Bold"
+                                               FontSize="15"
+                                               TextColor="White" />
+                                        <Label Text="{Binding Artist}"
+                                               FontSize="13"
+                                               TextColor="#B0B0B0"
+                                               Margin="0,2,0,0" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Border>
+                </Grid>
+
+                <!-- Нижні кнопки -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,20,*" Margin="0,16,0,0">
+                    <Button Grid.Column="0"
+                            Text="Тюнер"
+                            Command="{Binding OpenTunerCommand}"
+                            HeightRequest="55"
+                            BackgroundColor="#333333"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="12" />
+
+                    <Button Grid.Column="2"
+                            Text="Додати пісню"
+                            Command="{Binding AddSongCommand}"
+                            HeightRequest="55"
+                            BackgroundColor="#8A2BE2"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="12" />
+                </Grid>
+
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:EasyTABS.ViewModels"
+             x:Class="EasyTABS.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#121212">
+
+    <ContentPage.BindingContext>
+        <vm:LoginViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <!-- Градієнтний фон -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#1E1E24" Offset="0" />
+                <GradientStop Color="#121212" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <ScrollView>
+            <Border Stroke="Transparent"
+                    BackgroundColor="#202124"
+                    Padding="32"
+                    Margin="24"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="420"
+                    HorizontalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="0">
+
+                    <!-- Іконка користувача через шрифт Material Symbols -->
+                    <Label Text="&#xe853;"
+                           FontFamily="MaterialSymbols"
+                           FontSize="80"
+                           TextColor="#8A2BE2"
+                           HorizontalOptions="Center"
+                           Margin="0,0,0,10" />
+
+                    <Label Text="Ласкаво просимо"
+                           FontSize="26"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center" />
+
+                    <Label Text="Увійдіть у свій акаунт"
+                           FontSize="14"
+                           TextColor="#B0B0B0"
+                           HorizontalOptions="Center"
+                           Margin="0,5,0,32" />
+
+                    <!-- Поле логіна -->
+                    <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
+                        <Entry Placeholder="Логін або Email"
+                               Text="{Binding Login}"
+                               TextColor="White"
+                               PlaceholderColor="#808080"
+                               BackgroundColor="Transparent"
+                               FontSize="16"
+                               Keyboard="Email" />
+                    </Border>
+
+                    <!-- Поле пароля -->
+                    <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,10">
+                        <Entry Placeholder="Пароль"
+                               Text="{Binding Password}"
+                               IsPassword="True"
+                               TextColor="White"
+                               PlaceholderColor="#808080"
+                               BackgroundColor="Transparent"
+                               FontSize="16" />
+                    </Border>
+
+                    <Button Text="Забули пароль?"
+                            Command="{Binding ForgotPasswordCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="#808080"
+                            FontSize="12"
+                            HorizontalOptions="End"
+                            Padding="0"
+                            Margin="0,0,0,20" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="#FF6B6B"
+                           FontSize="13"
+                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                           Margin="0,0,0,12" />
+
+                    <Button Text="УВІЙТИ"
+                            Command="{Binding LoginCommand}"
+                            HeightRequest="55"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            BackgroundColor="#8A2BE2"
+                            TextColor="White"
+                            CornerRadius="12" />
+
+                    <HorizontalStackLayout HorizontalOptions="Center" Margin="0,28,0,0" Spacing="4">
+                        <Label Text="Ще немає акаунту?"
+                               TextColor="#808080"
+                               VerticalOptions="Center" />
+                        <Button Text="Створити"
+                                Command="{Binding GoToRegisterCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="#8A2BE2"
+                                FontAttributes="Bold"
+                                FontSize="14"
+                                Padding="4,0" />
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+        </ScrollView>
+    </Grid>
+</ContentPage>

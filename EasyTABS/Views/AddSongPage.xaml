@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:EasyTABS.ViewModels"
+             x:Class="EasyTABS.Views.AddSongPage"
+             x:DataType="vm:AddSongViewModel"
+             Title="Додати пісню"
+             BackgroundColor="#121212">
+
+    <ContentPage.BindingContext>
+        <vm:AddSongViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#1E1E24" Offset="0" />
+                <GradientStop Color="#121212" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <ScrollView>
+            <Border Stroke="Transparent"
+                    BackgroundColor="#202124"
+                    Padding="32"
+                    Margin="24"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="650"
+                    HorizontalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="0">
+
+                    <Label Text="Додайте свою пісню"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           Margin="0,0,0,28" />
+
+                    <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
+                        <Entry Placeholder="Назва пісні"
+                               Text="{Binding SongName}"
+                               TextColor="White"
+                               PlaceholderColor="#808080"
+                               BackgroundColor="Transparent"
+                               FontSize="16" />
+                    </Border>
+
+                    <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
+                        <Entry Placeholder="Виконавець"
+                               Text="{Binding Artist}"
+                               TextColor="White"
+                               PlaceholderColor="#808080"
+                               BackgroundColor="Transparent"
+                               FontSize="16" />
+                    </Border>
+
+                    <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
+                        <Entry Placeholder="Альбом"
+                               Text="{Binding Album}"
+                               TextColor="White"
+                               PlaceholderColor="#808080"
+                               BackgroundColor="Transparent"
+                               FontSize="16" />
+                    </Border>
+
+                    <!-- Зона вибору файлу (drag-and-drop замінено на FilePicker) -->
+                    <Border BackgroundColor="#18191C"
+                            Stroke="#8A2BE2"
+                            StrokeThickness="2"
+                            HeightRequest="180"
+                            Margin="0,10,0,28">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="15" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding PickFileCommand}" />
+                        </Border.GestureRecognizers>
+
+                        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="&#xe2c6;"
+                                   FontFamily="MaterialSymbols"
+                                   FontSize="50"
+                                   TextColor="#8A2BE2"
+                                   HorizontalOptions="Center"
+                                   IsVisible="{Binding IsFileSelected, Converter={StaticResource InverseBoolConverter}}"
+                                   Margin="0,0,0,10" />
+
+                            <Label Text="&#xe86c;"
+                                   FontFamily="MaterialSymbols"
+                                   FontSize="60"
+                                   TextColor="LimeGreen"
+                                   HorizontalOptions="Center"
+                                   IsVisible="{Binding IsFileSelected}"
+                                   Margin="0,0,0,10" />
+
+                            <Label Text="{Binding FileStatusText}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#E0E0E0"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+
+                            <Label Text="Підтримуються файли Guitar Pro"
+                                   FontSize="13"
+                                   TextColor="#808080"
+                                   HorizontalOptions="Center"
+                                   Margin="0,5,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="#FF6B6B"
+                           FontSize="13"
+                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                           Margin="0,0,0,12" />
+
+                    <Button Text="Додати в бібліотеку"
+                            Command="{Binding AddCommand}"
+                            HeightRequest="55"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            BackgroundColor="#8A2BE2"
+                            TextColor="White"
+                            CornerRadius="12" />
+
+                </VerticalStackLayout>
+            </Border>
+        </ScrollView>
+    </Grid>
+</ContentPage>
