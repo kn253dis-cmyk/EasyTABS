@@ -34,7 +34,11 @@ namespace EasyTABS.Data
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Song>()
+                .HasOne(s => s.Artist)
+                .WithMany(a => a.Songs)
+                .HasForeignKey(s => s.ArtistId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public string HashPassword(string password)

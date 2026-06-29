@@ -94,13 +94,12 @@ namespace EasyTABS.ViewModels
             var song = new Song
             {
                 Title = SongName,
-                Artist = Artist,
                 Album = Album,
+                Artist = new Artist { Name = Artist },
                 FilePath = _selectedFilePath
             };
-
             // TODO: збереження пісні через сервіс/БД.
-            await Shell.Current.DisplayAlert("Додано", $"\"{song.Title}\" у бібліотеці", "OK");
+            await Shell.Current.DisplayAlertAsync("Додано", $"\"{song.Title}\" у бібліотеці", "OK");
             await Shell.Current.GoToAsync("..");
         }
     }

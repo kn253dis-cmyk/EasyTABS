@@ -84,6 +84,8 @@ namespace EasyTABS.ViewModels
             try
             {
                 using var db = new EasyTABS.Data.Database();
+                await db.Database.EnsureCreatedAsync();
+
 
                 // Перевірка, чи email/нікнейм уже зайняті
                 bool exists = db.Users.Any(u => u.Email == Email || u.NickName == Nickname);
@@ -111,7 +113,7 @@ namespace EasyTABS.ViewModels
                 return;
             }
 
-            await Shell.Current.DisplayAlert("Готово", "Акаунт створено", "OK");
+            await Shell.Current.DisplayAlertAsync("Готово", "Акаунт створено", "OK");
             await Shell.Current.GoToAsync("..");
         }
     }

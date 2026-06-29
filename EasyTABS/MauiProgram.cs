@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+#if WINDOWS
+using Microsoft.UI.Xaml.Media;
+#endif
 
 namespace EasyTABS
 {
@@ -6,6 +9,20 @@ namespace EasyTABS
     {
         public static MauiApp CreateMauiApp()
         {
+
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+            {
+#if WINDOWS
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+            {
+                handler.PlatformView.Style = null;
+                handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                handler.PlatformView.Background =
+                    new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                handler.PlatformView.FocusVisualMargin = new Microsoft.UI.Xaml.Thickness(0);
+            });
+#endif
+            });
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -13,6 +30,7 @@ namespace EasyTABS
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("MaterialSymbols-Regular.ttf", "MaterialSymbols");
                 });
 
 #if DEBUG

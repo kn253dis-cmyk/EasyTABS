@@ -62,10 +62,10 @@ namespace EasyTABS.ViewModels
             // Тимчасові дані замість бази. Замініть на завантаження з сервісу/БД.
             _allSongs.AddRange(new[]
             {
-                new Song { Id = 1, Title = "Nothing Else Matters", Artist = "Metallica", Album = "Metallica" },
-                new Song { Id = 2, Title = "Wish You Were Here", Artist = "Pink Floyd", Album = "Wish You Were Here" },
-                new Song { Id = 3, Title = "Hotel California", Artist = "Eagles", Album = "Hotel California" },
-                new Song { Id = 4, Title = "Stairway to Heaven", Artist = "Led Zeppelin", Album = "Led Zeppelin IV" },
+                new Song { Id = 1, Title = "Nothing Else Matters", Artist=new Artist("Metallica"), Album = "Metallica" },
+                new Song { Id = 2, Title = "Wish You Were Here", Artist=new Artist("Pink Floyd"), Album = "Wish You Were Here" },
+                new Song { Id = 3, Title = "Hotel California", Artist=new Artist("Eagles"), Album = "Hotel California" },
+                new Song { Id = 4, Title = "Stairway to Heaven", Artist=new Artist("Led Zeppelin"), Album = "Led Zeppelin IV" },
             });
 
             ApplyFilter();
@@ -79,7 +79,8 @@ namespace EasyTABS.ViewModels
                 ? _allSongs
                 : _allSongs.Where(s =>
                     s.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    s.Artist.Contains(query, StringComparison.OrdinalIgnoreCase));
+                    s.Artist.ToString()
+                            .Contains(query, StringComparison.OrdinalIgnoreCase));
 
             Songs.Clear();
             foreach (var song in filtered)
@@ -98,7 +99,7 @@ namespace EasyTABS.ViewModels
         private async Task OpenSongAsync(Song song)
         {
             // TODO: відкриття табулатури обраної пісні.
-            await Shell.Current.DisplayAlert(song.Title, $"Виконавець: {song.Artist}", "OK");
+            await Shell.Current.DisplayAlertAsync(song.Title, $"Виконавець: {song.Artist}", "OK");
             SelectedSong = null; // скидаємо вибір
         }
     }

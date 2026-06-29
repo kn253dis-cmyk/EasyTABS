@@ -399,7 +399,18 @@
         </Setter>
     </Style>
     -->
-
+    <Style x:Key="FieldBorder" TargetType="Border">
+        <Setter Property="Stroke" Value="#333333" />
+        <Setter Property="StrokeThickness" Value="1.5" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="12" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BackgroundColor" Value="#1A1A1E" />
+        <Setter Property="Padding" Value="15,5" />
+    </Style>
+    
     <Style TargetType="Page" ApplyToDerivedTypes="True">
         <Setter Property="Padding" Value="0"/>
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />

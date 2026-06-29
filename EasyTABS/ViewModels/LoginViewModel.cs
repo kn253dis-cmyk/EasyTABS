@@ -1,4 +1,6 @@
+using EasyTABS.Entity;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyTABS.ViewModels
 {
@@ -36,7 +38,7 @@ namespace EasyTABS.ViewModels
             GoToRegisterCommand = new RelayCommand(async _ =>
                 await Shell.Current.GoToAsync("RegisterPage"));
             ForgotPasswordCommand = new RelayCommand(async _ =>
-                await Shell.Current.DisplayAlert("Відновлення", "Функція ще в розробці", "OK"));
+                await Shell.Current.DisplayAlertAsync("Відновлення", "Функція ще в розробці", "OK"));
         }
 
         private async Task DoLoginAsync()
@@ -49,9 +51,29 @@ namespace EasyTABS.ViewModels
                 return;
             }
 
-            // TODO: тут має бути виклик сервісу авторизації.
-            // Поки що — перехід на головну сторінку.
-            await Shell.Current.GoToAsync("//MainPage");
+            try
+            {
+                using (var db = new EasyTABS.Data.Database())
+                {
+                    string hashPassword = db.HashPassword(Password);
+
+                    // Використовуємо FirstOrDefaultAsync, перевіряємо і Email, і NickName
+                    var user = await db.Users.FirstOrDefaultAsync(u =>
+                        (u.Email == Login || u.NickName == Login) && u.Password == hashPassword);
+
+                    if (user != null)
+                        await Shell.Current.GoToAsync("MainPage");
+                    else
+                        // Якщо дані неправильні
+                        ErrorMessage = "Невірний логін або пароль";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Виводимо реальну помилку підключення на екран для дебагу
+                ErrorMessage = $"Помилка БД: {ex.InnerException?.Message ?? ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Login error: {ex}");
+            }
         }
     }
 }
