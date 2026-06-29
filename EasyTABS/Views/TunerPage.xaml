@@ -13,10 +13,10 @@
     </ContentPage.BindingContext>
 
     <ContentPage.Resources>
-        <drawables:SpectrumDrawable x:Key="SpectrumDrawable" />
+        <drawables:TunerDrawable x:Key="TunerDrawable" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="20">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20" RowSpacing="12">
         <Grid.Background>
             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                 <GradientStop Color="#1E1E24" Offset="0" />
@@ -24,49 +24,71 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!-- Нота та частота -->
+        <!-- Перемикач режиму -->
         <Border Grid.Row="0"
                 BackgroundColor="#202124"
                 Stroke="#33FFFFFF"
                 StrokeThickness="1"
-                Padding="40,15"
+                Padding="16,8"
                 HorizontalOptions="Center"
-                Margin="0,10,0,20">
+                Margin="0,6,0,0">
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="15" />
+                <RoundRectangle CornerRadius="12" />
             </Border.StrokeShape>
-            <VerticalStackLayout>
-                <Label Text="{Binding NoteText}"
-                       FontSize="48"
-                       FontAttributes="Bold"
-                       TextColor="{Binding IsListening, Converter={StaticResource BoolToNoteColorConverter}}"
-                       HorizontalOptions="Center"
-                       HorizontalTextAlignment="Center" />
-                <Label Text="{Binding FrequencyText}"
-                       FontSize="22"
+            <HorizontalStackLayout Spacing="12">
+                <Label Text="Тюнер"
+                       FontSize="14"
                        TextColor="#B0B0B0"
-                       HorizontalOptions="Center"
-                       Margin="0,5,0,0" />
-            </VerticalStackLayout>
+                       VerticalOptions="Center" />
+                <Switch IsToggled="{Binding IsChordMode}"
+                        OnColor="#8A2BE2"
+                        ThumbColor="White"
+                        VerticalOptions="Center" />
+                <Label Text="Акорди"
+                       FontSize="14"
+                       TextColor="#B0B0B0"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
         </Border>
 
-        <!-- Спектр -->
-        <Border Grid.Row="1"
+        <!-- Компактний рядок: нота / акорд + частота (менший шрифт) -->
+        <HorizontalStackLayout Grid.Row="1"
+                               HorizontalOptions="Center"
+                               Spacing="14">
+            <Label Text="{Binding NoteText}"
+                   FontSize="30"
+                   FontAttributes="Bold"
+                   TextColor="{Binding IsLocked, Converter={StaticResource BoolToNoteColorConverter}}"
+                   VerticalOptions="Center" />
+            <Label Text="{Binding ChordText}"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="#8A2BE2"
+                   IsVisible="{Binding IsChordMode}"
+                   VerticalOptions="Center" />
+            <Label Text="{Binding FrequencyText}"
+                   FontSize="16"
+                   TextColor="#B0B0B0"
+                   VerticalOptions="Center" />
+        </HorizontalStackLayout>
+
+        <!-- Великий графік -->
+        <Border Grid.Row="2"
                 BackgroundColor="#0A0A0A"
                 Stroke="#33FFFFFF"
-                StrokeThickness="1"
-                Margin="0,0,0,20">
+                StrokeThickness="1">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="15" />
             </Border.StrokeShape>
-            <GraphicsView Drawable="{StaticResource SpectrumDrawable}" />
+            <GraphicsView x:Name="GraphView"
+                          Drawable="{StaticResource TunerDrawable}" />
         </Border>
 
         <!-- Кнопки керування -->
-        <HorizontalStackLayout Grid.Row="2"
+        <HorizontalStackLayout Grid.Row="3"
                                HorizontalOptions="Center"
                                Spacing="20"
-                               Margin="0,0,0,20">
+                               Margin="0,0,0,10">
             <Button Text="Слухати"
                     Command="{Binding StartCommand}"
                     WidthRequest="140"
