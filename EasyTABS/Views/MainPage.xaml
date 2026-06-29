@@ -94,7 +94,7 @@
                                                    FontAttributes="Bold"
                                                    FontSize="16"
                                                    TextColor="White" />
-                                            <Label Text="{Binding Artist}"
+                                            <Label Text="{Binding Artist.Name}"
                                                    FontSize="13"
                                                    TextColor="#B0B0B0"
                                                    Margin="0,4,0,0" />
