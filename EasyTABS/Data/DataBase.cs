@@ -12,15 +12,19 @@ using EasyTABS.Models;
 
 namespace EasyTABS.Data
 {
-    internal class Database : DbContext
+    public class Database : DbContext
     {
-        public DbSet<User> Users { get; set; } = null!;
-        public DbSet<Song> Songs { get; set; } = null!;
-
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Song> Songs => Set<Song>();
+        public DbSet<Artist> Artists => Set<Artist>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = "Host=ep-royal-dream-abh0pnss-pooler.eu-west-2.aws.neon.tech;Timeout =60;Command Timeout=60; Database=neondb; Username=neondb_owner; Password=npg_cexS96JAkaoj; SSL Mode=VerifyFull; Channel Binding=Require;";
+            string connectionString =
+                "Host=ep-royal-dream-abh0pnss-pooler.eu-west-2.aws.neon.tech;" +
+                "Timeout=60;Command Timeout=60;Database=neondb;" +
+                "Username=neondb_owner;Password=npg_cexS96JAkaoj;" +
+                "SSL Mode=VerifyFull;Channel Binding=Require;";
 
             optionsBuilder.UseNpgsql(connectionString, builder =>
             {
@@ -29,30 +33,49 @@ namespace EasyTABS.Data
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorCodesToAdd: null);
             });
-            optionsBuilder.ConfigureWarnings(w =>
-         w.Ignore(RelationalEventId.PendingModelChangesWarning));
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Song>()
-                .HasOne(s => s.Artist)
-                .WithMany(a => a.Songs)
-                .HasForeignKey(s => s.ArtistId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Artist>(e =>
+            {
+                e.HasKey(a => a.Id);
+                e.Property(a => a.Name).IsRequired().HasMaxLength(200);
+            });
+
+            modelBuilder.Entity<Song>(e =>
+            {
+                e.HasKey(s => s.Id);
+                e.Property(s => s.Title).IsRequired().HasMaxLength(300);
+                e.Property(s => s.Album).HasMaxLength(300);
+                e.Property(s => s.AlbumCoverPath).HasMaxLength(500);
+                e.Property(s => s.TabFileName).HasMaxLength(300);
+
+                // Файл таба — bytea у PostgreSQL.
+                e.Property(s => s.TabData).HasColumnType("bytea");
+
+                e.HasOne(s => s.Artist)
+                 .WithMany(a => a.Songs)
+                 .HasForeignKey(s => s.ArtistId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<User>(e =>
+            {
+                e.HasKey(u => u.ID);
+                e.HasIndex(u => u.Email).IsUnique();
+                e.HasIndex(u => u.NickName).IsUnique();
+            });
         }
 
         public string HashPassword(string password)
         {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
-
-                return builder.ToString();
-            }
+            using var sha256 = SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            var sb = new StringBuilder();
+            foreach (var b in bytes)
+                sb.Append(b.ToString("x2"));
+            return sb.ToString();
         }
     }
-
 }

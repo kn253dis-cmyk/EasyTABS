@@ -1,5 +1,7 @@
 using System.Windows.Input;
 using EasyTABS.Models;
+using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace EasyTABS.ViewModels
 {
@@ -91,16 +93,45 @@ namespace EasyTABS.ViewModels
                 return;
             }
 
-            var song = new Song
+            try
             {
-                Title = SongName,
-                Album = Album,
-                Artist = new Artist { Name = Artist },
-                FilePath = _selectedFilePath
-            };
-            // TODO: збереження пісні через сервіс/БД.
-            await Shell.Current.DisplayAlertAsync("Додано", $"\"{song.Title}\" у бібліотеці", "OK");
-            await Shell.Current.GoToAsync("..");
+                byte[]? tabBytes = null;
+                string tabFileName = string.Empty;
+
+                if (!string.IsNullOrEmpty(_selectedFilePath) && File.Exists(_selectedFilePath))
+                {
+                    tabBytes = await File.ReadAllBytesAsync(_selectedFilePath);
+                    tabFileName = Path.GetFileName(_selectedFilePath);
+                }
+
+                using var db = new EasyTABS.Data.Database();
+
+                // Знаходимо існуючого виконавця або створюємо нового,
+                // щоб не плодити дублікати Artist.
+                var artist = await db.Artists
+                    .FirstOrDefaultAsync(a => a.Name == Artist)
+                    ?? new Artist { Name = Artist };
+
+                var song = new Song
+                {
+                    Title = SongName,
+                    Album = Album,
+                    Artist = artist,
+                    TabData = tabBytes,
+                    TabFileName = tabFileName
+                };
+
+                db.Songs.Add(song);
+                await db.SaveChangesAsync();
+
+                await Shell.Current.DisplayAlertAsync("Додано", $"\"{song.Title}\" у бібліотеці", "OK");
+                await Shell.Current.GoToAsync("..");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Не вдалося зберегти: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"AddSong error: {ex}");
+            }
         }
     }
 }

@@ -11,18 +11,12 @@ namespace EasyTABS.Models
         public string Album { get; set; } = string.Empty;
         public int ArtistId { get; set; }
         public Artist Artist { get; set; } = null!;
-
+        // Зовнішнє зберігання обгортки: у БД лише URL/шлях.
         public string AlbumCoverPath { get; set; } = "album_placeholder.png";
-        public string FilePath { get; set; } = string.Empty;
-
-        public Song() { }
-        public Song(string title, string album, int artistId, string albumCoverPath, string filePath)
-        {
-            Title = title;
-            Album = album;
-            ArtistId = artistId;
-            AlbumCoverPath = albumCoverPath;
-            FilePath = filePath;
-        }
+        // Файл таба зберігається безпосередньо в БД як байти.
+        // Невеликий, текстовий — підходить для byte[].
+        public byte[]? TabData { get; set; }
+        // Оригінальна назва файлу (напр. "song.gp5") — щоб знати розширення/тип.
+        public string TabFileName { get; set; } = string.Empty;
     }
 }
