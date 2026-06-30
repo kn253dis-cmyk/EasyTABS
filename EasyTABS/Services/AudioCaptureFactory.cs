@@ -15,7 +15,7 @@ namespace EasyTABS.Services
             return new EasyTABS.Platforms.Windows.WindowsAudioCapture();
 #elif ANDROID
             return new EasyTABS.Platforms.Android.AndroidAudioCapture();
-#elif IOS || MACCATALYST
+#elif IOS
             return new EasyTABS.Platforms.Apple.AppleAudioCapture();
 #else
             throw new System.PlatformNotSupportedException("Захоплення звуку не підтримується на цій платформі.");

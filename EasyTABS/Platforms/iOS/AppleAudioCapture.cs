@@ -13,6 +13,18 @@ namespace EasyTABS.Platforms.Apple
     /// </summary>
     public class AppleAudioCapture : IAudioCapture
     {
+        public static IAudioCapture Create()
+        {
+#if IOS || MACCATALYST
+            return new EasyTABS.Platforms.Apple.AppleAudioCapture();
+#elif ANDROID
+    return new EasyTABS.Platforms.Android.AndroidAudioCapture();
+#elif WINDOWS
+    return new EasyTABS.Platforms.Windows.WindowsAudioCapture();
+#else
+    throw new PlatformNotSupportedException("Аудіозахоплення не підтримується на цій платформі.");
+#endif
+        }
         private AVAudioEngine? _engine;
 
         public int SampleRate { get; private set; } = 44100;

@@ -4,6 +4,7 @@ using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+//using Xamarin.Google.Crypto.Tink.Shaded.Protobuf;
 
 namespace EasyTABS.Models
 {
@@ -110,7 +111,7 @@ namespace EasyTABS.Models
                 double freq = i * binWidth;
 
                 // Фільтруємо частоти за межами корисного діапазону акордів (приблизно E2 - C6)
-                if (freq < 60 || freq > 1350) continue;
+                if (freq < 50 || freq > 1350) continue;
 
                 // Перевід частоти в MIDI-ноту: n = 12 * log2(f / 440) + 69
                 double midiNote = 12.0 * Math.Log(freq / 440.0, 2.0) + 69.0;

@@ -54,6 +54,7 @@ namespace EasyTABS.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"Не вдалося обрати файл: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"PickCover FULL: {ex}");
             }
         }
 
@@ -72,6 +73,7 @@ namespace EasyTABS.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"Не вдалося обрати обкладинку: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"PickCover FULL: {ex}");
             }
         }
 
@@ -107,12 +109,15 @@ namespace EasyTABS.ViewModels
             }
             catch (InvalidOperationException dup)
             {
+
                 ErrorMessage = dup.Message;
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Не вдалося зберегти: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"AddSong error: {ex}");
+                var inner = ex;
+                while (inner.InnerException is not null) inner = inner.InnerException;
+                ErrorMessage = $"Не вдалося зберегти: {inner.Message}";
+                System.Diagnostics.Debug.WriteLine($"AddSong FULL: {ex}");
             }
         }
     }
