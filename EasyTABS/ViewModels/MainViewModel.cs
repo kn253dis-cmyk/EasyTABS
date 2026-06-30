@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using EasyTABS.Models;
+using EasyTABS.Services;
 
 namespace EasyTABS.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-        // Повний список (джерело даних).
-        private readonly List<Song> _allSongs = new();
+        private readonly SongRepository _repo = new();
 
         private string _searchText = string.Empty;
         private Song? _selectedSong;
@@ -18,11 +18,7 @@ namespace EasyTABS.ViewModels
         public string SearchText
         {
             get => _searchText;
-            set
-            {
-                if (SetProperty(ref _searchText, value))
-                    ApplyFilter();
-            }
+            set { if (SetProperty(ref _searchText, value)) _ = ApplyFilterAsync(); }
         }
 
         private bool _isSuggestionsVisible;
@@ -35,11 +31,7 @@ namespace EasyTABS.ViewModels
         public Song? SelectedSong
         {
             get => _selectedSong;
-            set
-            {
-                if (SetProperty(ref _selectedSong, value) && value is not null)
-                    _ = OpenSongAsync(value);
-            }
+            set { if (SetProperty(ref _selectedSong, value) && value is not null) _ = OpenSongAsync(value); }
         }
 
         public ICommand OpenTunerCommand { get; }
@@ -48,59 +40,43 @@ namespace EasyTABS.ViewModels
 
         public MainViewModel()
         {
-            OpenTunerCommand = new RelayCommand(async _ =>
-                await Shell.Current.GoToAsync("TunerPage"));
-            AddSongCommand = new RelayCommand(async _ =>
-                await Shell.Current.GoToAsync("AddSongPage"));
-            SearchCommand = new RelayCommand(_ => ApplyFilter());
+            OpenTunerCommand = new RelayCommand(async _ => await Shell.Current.GoToAsync("TunerPage"));
+            AddSongCommand = new RelayCommand(async _ => await Shell.Current.GoToAsync("AddSongPage"));
+            SearchCommand = new RelayCommand(async _ => await ApplyFilterAsync());
 
-            LoadSampleData();
+            _ = ApplyFilterAsync();
         }
 
-        private void LoadSampleData()
-        {
-            // Тимчасові дані замість бази. Замініть на завантаження з сервісу/БД.
-            _allSongs.AddRange(new[]
-            {
-                new Song { Id = 1, Title = "Nothing Else Matters", Artist=new Artist("Metallica"), Album = "Metallica" },
-                new Song { Id = 2, Title = "Wish You Were Here", Artist=new Artist("Pink Floyd"), Album = "Wish You Were Here" },
-                new Song { Id = 3, Title = "Hotel California", Artist=new Artist("Eagles"), Album = "Hotel California" },
-                new Song { Id = 4, Title = "Stairway to Heaven", Artist=new Artist("Led Zeppelin"), Album = "Led Zeppelin IV" },
-            });
-
-            ApplyFilter();
-        }
-
-        private void ApplyFilter()
+        private async Task ApplyFilterAsync()
         {
             var query = SearchText?.Trim() ?? string.Empty;
 
-            IEnumerable<Song> filtered = string.IsNullOrEmpty(query)
-                ? _allSongs
-                : _allSongs.Where(s =>
-                    s.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    s.Artist.ToString()
-                            .Contains(query, StringComparison.OrdinalIgnoreCase));
+            List<Song> filtered;
+            try
+            {
+                filtered = await _repo.SearchAsync(query);
+            }
+            catch
+            {
+                filtered = new List<Song>();
+            }
 
             Songs.Clear();
             foreach (var song in filtered)
                 Songs.Add(song);
 
-            // Підказки показуємо лише коли є текст пошуку.
             Suggestions.Clear();
             if (!string.IsNullOrEmpty(query))
-            {
                 foreach (var song in filtered.Take(5))
                     Suggestions.Add(song);
-            }
+
             IsSuggestionsVisible = Suggestions.Count > 0;
         }
 
         private async Task OpenSongAsync(Song song)
         {
-            // TODO: відкриття табулатури обраної пісні.
-            await Shell.Current.DisplayAlertAsync(song.Title, $"Виконавець: {song.Artist}", "OK");
-            SelectedSong = null; // скидаємо вибір
+            await Shell.Current.DisplayAlertAsync(song.Title, $"Виконавець: {song.Artist?.Name}", "OK");
+            SelectedSong = null;
         }
     }
 }

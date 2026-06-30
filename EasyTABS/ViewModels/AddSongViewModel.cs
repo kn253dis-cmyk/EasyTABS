@@ -1,62 +1,37 @@
 using System.Windows.Input;
-using EasyTABS.Models;
-using Microsoft.EntityFrameworkCore;
+using EasyTABS.Services;
 using System.IO;
 
 namespace EasyTABS.ViewModels
 {
     public class AddSongViewModel : BaseViewModel
     {
+        private readonly SongRepository _repo = new();
+
         private string _songName = string.Empty;
         private string _artist = string.Empty;
         private string _album = string.Empty;
         private string _selectedFilePath = string.Empty;
+        private string _coverPath = string.Empty;
         private string _fileStatusText = "Натисніть, щоб обрати файл Guitar Pro";
         private bool _isFileSelected;
         private string _errorMessage = string.Empty;
 
-        public string SongName
-        {
-            get => _songName;
-            set => SetProperty(ref _songName, value);
-        }
-
-        public string Artist
-        {
-            get => _artist;
-            set => SetProperty(ref _artist, value);
-        }
-
-        public string Album
-        {
-            get => _album;
-            set => SetProperty(ref _album, value);
-        }
-
-        public string FileStatusText
-        {
-            get => _fileStatusText;
-            set => SetProperty(ref _fileStatusText, value);
-        }
-
-        public bool IsFileSelected
-        {
-            get => _isFileSelected;
-            set => SetProperty(ref _isFileSelected, value);
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
-        }
+        public string SongName { get => _songName; set => SetProperty(ref _songName, value); }
+        public string Artist { get => _artist; set => SetProperty(ref _artist, value); }
+        public string Album { get => _album; set => SetProperty(ref _album, value); }
+        public string FileStatusText { get => _fileStatusText; set => SetProperty(ref _fileStatusText, value); }
+        public bool IsFileSelected { get => _isFileSelected; set => SetProperty(ref _isFileSelected, value); }
+        public string ErrorMessage { get => _errorMessage; set => SetProperty(ref _errorMessage, value); }
 
         public ICommand PickFileCommand { get; }
+        public ICommand PickCoverCommand { get; }
         public ICommand AddCommand { get; }
 
         public AddSongViewModel()
         {
             PickFileCommand = new RelayCommand(async _ => await PickFileAsync());
+            PickCoverCommand = new RelayCommand(async _ => await PickCoverAsync());
             AddCommand = new RelayCommand(async _ => await AddAsync());
         }
 
@@ -64,7 +39,6 @@ namespace EasyTABS.ViewModels
         {
             try
             {
-                // Drag-and-drop із WPF на мобільних не працює — замінюємо вибором файлу.
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
                     PickerTitle = "Оберіть файл Guitar Pro"
@@ -83,6 +57,24 @@ namespace EasyTABS.ViewModels
             }
         }
 
+        private async Task PickCoverAsync()
+        {
+            try
+            {
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Оберіть обкладинку",
+                    FileTypes = FilePickerFileType.Images
+                });
+                if (result is not null)
+                    _coverPath = result.FullPath;
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Не вдалося обрати обкладинку: {ex.Message}";
+            }
+        }
+
         private async Task AddAsync()
         {
             ErrorMessage = string.Empty;
@@ -97,35 +89,25 @@ namespace EasyTABS.ViewModels
             {
                 byte[]? tabBytes = null;
                 string tabFileName = string.Empty;
-
                 if (!string.IsNullOrEmpty(_selectedFilePath) && File.Exists(_selectedFilePath))
                 {
                     tabBytes = await File.ReadAllBytesAsync(_selectedFilePath);
                     tabFileName = Path.GetFileName(_selectedFilePath);
                 }
 
-                using var db = new EasyTABS.Data.Database();
+                byte[]? coverBytes = null;
+                if (!string.IsNullOrEmpty(_coverPath) && File.Exists(_coverPath))
+                    coverBytes = await File.ReadAllBytesAsync(_coverPath);
 
-                // Знаходимо існуючого виконавця або створюємо нового,
-                // щоб не плодити дублікати Artist.
-                var artist = await db.Artists
-                    .FirstOrDefaultAsync(a => a.Name == Artist)
-                    ?? new Artist { Name = Artist };
+                await _repo.AddSongAsync(SongName.Trim(), Artist.Trim(), Album?.Trim() ?? "",
+                                         tabBytes, tabFileName, coverBytes);
 
-                var song = new Song
-                {
-                    Title = SongName,
-                    Album = Album,
-                    Artist = artist,
-                    TabData = tabBytes,
-                    TabFileName = tabFileName
-                };
-
-                db.Songs.Add(song);
-                await db.SaveChangesAsync();
-
-                await Shell.Current.DisplayAlertAsync("Додано", $"\"{song.Title}\" у бібліотеці", "OK");
+                await Shell.Current.DisplayAlertAsync("Додано", $"\"{SongName}\" у бібліотеці", "OK");
                 await Shell.Current.GoToAsync("..");
+            }
+            catch (InvalidOperationException dup)
+            {
+                ErrorMessage = dup.Message;
             }
             catch (Exception ex)
             {

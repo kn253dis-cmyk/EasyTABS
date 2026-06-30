@@ -1,7 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-#if WINDOWS
-using Microsoft.UI.Xaml.Media;
-#endif
 
 namespace EasyTABS
 {
@@ -9,9 +6,6 @@ namespace EasyTABS
     {
         public static MauiApp CreateMauiApp()
         {
-
-            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
-            {
 #if WINDOWS
             Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
             {
@@ -22,7 +16,6 @@ namespace EasyTABS
                 handler.PlatformView.FocusVisualMargin = new Microsoft.UI.Xaml.Thickness(0);
             });
 #endif
-            });
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -34,7 +27,7 @@ namespace EasyTABS
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

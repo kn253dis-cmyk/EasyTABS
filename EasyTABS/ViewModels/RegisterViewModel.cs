@@ -84,7 +84,7 @@ namespace EasyTABS.ViewModels
             try
             {
                 using var db = new EasyTABS.Data.Database();
-                await db.Database.EnsureCreatedAsync();
+                //await db.Database.EnsureCreatedAsync();
 
 
                 // Перевірка, чи email/нікнейм уже зайняті

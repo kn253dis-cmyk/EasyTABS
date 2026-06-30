@@ -85,7 +85,8 @@
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="8" />
                                             </Border.StrokeShape>
-                                            <Image Source="{Binding AlbumCoverPath}"
+                                            <Image Source="{Binding AlbumCoverData, 
+                                                Converter={StaticResource BytesToImageConverter}}"
                                                    Aspect="AspectFill" />
                                         </Border>
 
@@ -127,7 +128,7 @@
                                                FontAttributes="Bold"
                                                FontSize="15"
                                                TextColor="White" />
-                                        <Label Text="{Binding Artist}"
+                                        <Label Text="{Binding Artist.Name}"
                                                FontSize="13"
                                                TextColor="#B0B0B0"
                                                Margin="0,2,0,0" />

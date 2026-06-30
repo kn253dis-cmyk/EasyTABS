@@ -48,7 +48,7 @@ namespace EasyTABS.Data
                 e.HasKey(s => s.Id);
                 e.Property(s => s.Title).IsRequired().HasMaxLength(300);
                 e.Property(s => s.Album).HasMaxLength(300);
-                e.Property(s => s.AlbumCoverPath).HasMaxLength(500);
+                e.Property(s => s.AlbumCoverData).HasColumnType("bytea");
                 e.Property(s => s.TabFileName).HasMaxLength(300);
 
                 // Файл таба — bytea у PostgreSQL.

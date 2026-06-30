@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace EasyTABS.Converters
 {
@@ -27,6 +29,16 @@ namespace EasyTABS.Converters
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
             => (value is bool b && b) ? Colors.White : Color.FromArgb("#808080");
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+    public class BytesToImageConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value is byte[] bytes && bytes.Length > 0
+                ? ImageSource.FromStream(() => new MemoryStream(bytes))
+                : "album_placeholder.png";
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             => throw new NotSupportedException();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 
 namespace EasyTABS
 {
@@ -13,5 +14,6 @@ namespace EasyTABS
         {
             return new Window(new AppShell());
         }
+        
     }
 }

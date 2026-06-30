@@ -35,14 +35,15 @@
                 <VerticalStackLayout Spacing="0">
 
                     <!-- Іконка користувача через шрифт Material Symbols -->
-                    <Label Text="&#xe853;"
+                    <Label Text=""
                            FontFamily="MaterialSymbols"
                            FontSize="80"
                            TextColor="#8A2BE2"
                            HorizontalOptions="Center"
                            Margin="0,0,0,10" />
+                    
 
-                    <Label Text="Ласкаво просимо"
+                        <Label Text="Ласкаво просимо"
                            FontSize="26"
                            FontAttributes="Bold"
                            TextColor="White"
