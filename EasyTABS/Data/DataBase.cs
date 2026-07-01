@@ -17,6 +17,7 @@ namespace EasyTABS.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Song> Songs => Set<Song>();
         public DbSet<Artist> Artists => Set<Artist>();
+        public DbSet<Album> Albums => Set<Album>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -43,12 +44,26 @@ namespace EasyTABS.Data
                 e.Property(a => a.Name).IsRequired().HasMaxLength(200);
             });
 
+            modelBuilder.Entity<Album>(e =>
+            {
+                e.HasKey(a => a.Id);
+                e.Property(a => a.Title).IsRequired().HasMaxLength(300);
+                e.Property(a => a.CoverData).HasColumnType("bytea");
+
+                e.HasOne(a => a.Artist)
+                 .WithMany()
+                 .HasForeignKey(a => a.ArtistId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                // Один альбом на артиста за назвою.
+                e.HasIndex(a => new { a.ArtistId, a.Title }).IsUnique();
+            });
+
             modelBuilder.Entity<Song>(e =>
             {
                 e.HasKey(s => s.Id);
                 e.Property(s => s.Title).IsRequired().HasMaxLength(300);
                 e.Property(s => s.Album).HasMaxLength(300);
-                e.Property(s => s.AlbumCoverData).HasColumnType("bytea");
                 e.Property(s => s.TabFileName).HasMaxLength(300);
 
                 // Файл таба — bytea у PostgreSQL.
@@ -58,6 +73,13 @@ namespace EasyTABS.Data
                  .WithMany(a => a.Songs)
                  .HasForeignKey(s => s.ArtistId)
                  .OnDelete(DeleteBehavior.Cascade);
+
+                // Пісня посилається на альбом (nullable). Видалення альбому
+                // не видаляє пісні — просто обнуляє посилання.
+                e.HasOne(s => s.AlbumEntity)
+                 .WithMany(a => a.Songs)
+                 .HasForeignKey(s => s.AlbumId)
+                 .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<User>(e =>

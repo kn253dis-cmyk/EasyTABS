@@ -42,6 +42,15 @@ namespace EasyTABS.ViewModels
 
         private Color _feedbackColor = Colors.Transparent;
 
+        // Живий фідбек мікрофона.
+        private string _micNoteText = "--";
+        private string _micStatusText = string.Empty;
+        private Color _micStatusColor = Colors.Transparent;
+
+        public string MicNoteText { get => _micNoteText; set => SetProperty(ref _micNoteText, value); }
+        public string MicStatusText { get => _micStatusText; set => SetProperty(ref _micStatusText, value); }
+        public Color MicStatusColor { get => _micStatusColor; set => SetProperty(ref _micStatusColor, value); }
+
         public ObservableCollection<TrackInfo> Tracks { get; } = new();
         private TrackInfo? _selectedTrack;
         private bool _isTrackListVisible;
@@ -290,6 +299,9 @@ namespace EasyTABS.ViewModels
                 _noteChecker?.Stop();
                 IsNoteCheckOn = false;
                 FeedbackColor = Colors.Transparent;
+                MicNoteText = "--";
+                MicStatusText = string.Empty;
+                MicStatusColor = Colors.Transparent;
                 return;
             }
 
@@ -300,10 +312,12 @@ namespace EasyTABS.ViewModels
                     var capture = AudioCaptureFactory.Create();
                     var tuner = new TunerService(capture);
                     _noteChecker = new NoteChecker(tuner);
-                    _noteChecker.StateChanged += OnNoteCheckState;
+                    _noteChecker.FeedbackChanged += OnMicFeedback;
                 }
                 _noteChecker.Start();
                 IsNoteCheckOn = true;
+                MicStatusText = "Слухаю…";
+                MicStatusColor = Color.FromArgb("#8A2BE2");
             }
             catch (Exception ex)
             {
@@ -311,17 +325,49 @@ namespace EasyTABS.ViewModels
             }
         }
 
-        private void OnNoteCheckState(NoteCheckState state)
+        private void OnMicFeedback(MicFeedback fb)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                FeedbackColor = state switch
+                if (!fb.IsListening)
                 {
-                    NoteCheckState.Correct => Color.FromRgba(50, 205, 50, 180),
-                    NoteCheckState.Wrong => Color.FromRgba(220, 20, 60, 180),
-                    NoteCheckState.Waiting => Color.FromRgba(255, 165, 0, 180),
-                    _ => Colors.Transparent
-                };
+                    MicNoteText = "--";
+                    MicStatusText = string.Empty;
+                    MicStatusColor = Colors.Transparent;
+                    FeedbackColor = Colors.Transparent;
+                    return;
+                }
+
+                // Жива нота з мікрофона (видно завжди, коли є сигнал).
+                MicNoteText = fb.HasSignal ? fb.Note : "--";
+
+                // Текстовий статус + колір рамки залежно від стану перевірки.
+                switch (fb.CheckState)
+                {
+                    case NoteCheckState.Correct:
+                        MicStatusText = "Правильно!";
+                        MicStatusColor = Color.FromArgb("#32CD32");
+                        FeedbackColor = Color.FromRgba(50, 205, 50, 180);
+                        break;
+                    case NoteCheckState.Wrong:
+                        MicStatusText = "Не та нота";
+                        MicStatusColor = Color.FromArgb("#DC143C");
+                        FeedbackColor = Color.FromRgba(220, 20, 60, 180);
+                        break;
+                    case NoteCheckState.Waiting:
+                        MicStatusText = "Зіграйте ноту…";
+                        MicStatusColor = Color.FromArgb("#FFA500");
+                        FeedbackColor = Color.FromRgba(255, 165, 0, 120);
+                        break;
+                    default:
+                        // Немає активної перевірки — показуємо просто, що слухаємо.
+                        MicStatusText = fb.HasSignal ? $"Чути: {fb.Note}" : "Слухаю…";
+                        MicStatusColor = fb.HasSignal ? Color.FromArgb("#8A2BE2") : Color.FromArgb("#808080");
+                        FeedbackColor = fb.HasSignal
+                            ? Color.FromRgba(138, 43, 226, 90)
+                            : Colors.Transparent;
+                        break;
+                }
             });
         }
 

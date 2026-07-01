@@ -1,4 +1,4 @@
-﻿using EasyTABS.Data;
+using EasyTABS.Data;
 using EasyTABS.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,17 +6,18 @@ namespace EasyTABS.Services
 {
     public class SongRepository
     {
-        // Усі пісні з артистами (для списку на головній).
+        // Усі пісні з артистом та альбомом (для списку на головній).
         public async Task<List<Song>> GetAllSongsAsync()
         {
             using var db = new Database();
             return await db.Songs
                 .Include(s => s.Artist)
+                .Include(s => s.AlbumEntity)
                 .OrderBy(s => s.Title)
                 .ToListAsync();
         }
 
-        // Пошук за назвою або іменем артиста (заміна твого фільтра по JSON).
+        // Пошук за назвою пісні або іменем артиста.
         public async Task<List<Song>> SearchAsync(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -26,14 +27,16 @@ namespace EasyTABS.Services
             using var db = new Database();
             return await db.Songs
                 .Include(s => s.Artist)
+                .Include(s => s.AlbumEntity)
                 .Where(s => EF.Functions.ILike(s.Title, $"%{query}%")
                          || EF.Functions.ILike(s.Artist.Name, $"%{query}%"))
                 .OrderBy(s => s.Title)
                 .ToListAsync();
         }
 
-        // Додавання пісні з файлами. Артист шукається або створюється.
-        public async Task AddSongAsync(string title, string artistName, string album,
+        // Додавання пісні. Артист і альбом шукаються або створюються.
+        // Обкладинка зберігається на рівні альбому — одна на всі пісні альбому.
+        public async Task AddSongAsync(string title, string artistName, string albumTitle,
                                        byte[]? tabData, string tabFileName,
                                        byte[]? coverData)
         {
@@ -47,14 +50,42 @@ namespace EasyTABS.Services
             if (duplicate)
                 throw new InvalidOperationException($"Пісня \"{title}\" вже існує.");
 
+            Album? album = null;
+            if (!string.IsNullOrWhiteSpace(albumTitle) &&
+                !albumTitle.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+            {
+                // Шукаємо існуючий альбом цього артиста за назвою.
+                album = await db.Albums
+                    .Include(a => a.Artist)
+                    .FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist.Name == artistName);
+
+                if (album is null)
+                {
+                    // Новий альбом — зберігаємо обкладинку тут (один раз).
+                    album = new Album
+                    {
+                        Title = albumTitle,
+                        Artist = artist,
+                        CoverData = coverData
+                    };
+                    db.Albums.Add(album);
+                }
+                else if (album.CoverData is null && coverData is not null)
+                {
+                    // Альбом уже є, але без обкладинки — доповнюємо.
+                    album.CoverData = coverData;
+                }
+                // Якщо обкладинка вже є — нову ігноруємо (не дублюємо).
+            }
+
             var song = new Song
             {
                 Title = title,
-                Album = string.IsNullOrWhiteSpace(album) ? "Unknown" : album,
+                Album = string.IsNullOrWhiteSpace(albumTitle) ? "Unknown" : albumTitle,
                 Artist = artist,
+                AlbumEntity = album,
                 TabData = tabData,
-                TabFileName = tabFileName,
-                AlbumCoverData = coverData
+                TabFileName = tabFileName
             };
 
             db.Songs.Add(song);
@@ -69,16 +100,17 @@ namespace EasyTABS.Services
             return (song?.TabData, song?.TabFileName ?? string.Empty);
         }
 
-        // Повна пісня з артистом для сторінки плеєра.
+        // Повна пісня з артистом і альбомом для сторінки плеєра.
         public async Task<Song?> GetSongByIdAsync(int songId)
         {
             using var db = new Database();
             return await db.Songs
                 .Include(s => s.Artist)
+                .Include(s => s.AlbumEntity)
                 .FirstOrDefaultAsync(s => s.Id == songId);
         }
 
-        // Унікальні імена артистів (для підказок у полі "Виконавець").
+        // Унікальні імена артистів (підказки для поля "Виконавець").
         public async Task<List<string>> GetArtistNamesAsync(string query)
         {
             using var db = new Database();
@@ -114,5 +146,40 @@ namespace EasyTABS.Services
                           .Take(6)
                           .ToListAsync();
         }
+
+        // Підказки альбомів (для попапу в полі "Альбом").
+        // Повертає назви існуючих альбомів; за бажанням фільтрує за артистом.
+        public async Task<List<AlbumSuggestion>> GetAlbumSuggestionsAsync(string query, string? artistName = null)
+        {
+            using var db = new Database();
+            var q = db.Albums.Include(a => a.Artist).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(artistName))
+                q = q.Where(a => a.Artist.Name == artistName.Trim());
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                query = query.Trim();
+                q = q.Where(a => EF.Functions.ILike(a.Title, $"%{query}%"));
+            }
+
+            return await q.OrderBy(a => a.Title)
+                          .Take(6)
+                          .Select(a => new AlbumSuggestion
+                          {
+                              Title = a.Title,
+                              ArtistName = a.Artist.Name,
+                              CoverData = a.CoverData
+                          })
+                          .ToListAsync();
+        }
+    }
+
+    // Легка модель підказки альбому (з обкладинкою для прев'ю).
+    public class AlbumSuggestion
+    {
+        public string Title { get; set; } = string.Empty;
+        public string ArtistName { get; set; } = string.Empty;
+        public byte[]? CoverData { get; set; }
     }
 }

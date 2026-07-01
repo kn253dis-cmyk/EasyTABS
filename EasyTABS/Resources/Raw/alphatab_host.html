@@ -111,6 +111,37 @@
             api = new alphaTab.AlphaTabApi(document.getElementById("alphaTab"), settings);
 
             api.scoreLoaded.on(function (score) {
+                // Обмежуємо висоту бендів, щоб стрілки не розтягувались на весь
+                // екран (портовано з WPF-версії). Значення бенду в AlphaTab —
+                // у чвертях тону; кламп до ±6 = ±1.5 тону візуально.
+                var maxVisualBend = 6;
+                try {
+                    for (var ti = 0; ti < score.tracks.length; ti++) {
+                        var staves = score.tracks[ti].staves || [];
+                        for (var si = 0; si < staves.length; si++) {
+                            var bars = staves[si].bars || [];
+                            for (var bi = 0; bi < bars.length; bi++) {
+                                var voices = bars[bi].voices || [];
+                                for (var vi = 0; vi < voices.length; vi++) {
+                                    var beats = voices[vi].beats || [];
+                                    for (var bei = 0; bei < beats.length; bei++) {
+                                        var notes = beats[bei].notes || [];
+                                        for (var ni = 0; ni < notes.length; ni++) {
+                                            var note = notes[ni];
+                                            if (!note.hasBend || !note.bendPoints) continue;
+                                            for (var pi = 0; pi < note.bendPoints.length; pi++) {
+                                                var bp = note.bendPoints[pi];
+                                                if (bp.value > maxVisualBend) bp.value = maxVisualBend;
+                                                else if (bp.value < -maxVisualBend) bp.value = -maxVisualBend;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (bendErr) { }
+
                 var tracks = [];
                 for (var i = 0; i < score.tracks.length; i++) {
                     var tr = score.tracks[i];

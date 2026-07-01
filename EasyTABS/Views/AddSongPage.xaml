@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EasyTABS.ViewModels"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             xmlns:svc="clr-namespace:EasyTABS.Services"
              x:Class="EasyTABS.Views.AddSongPage"
              x:Name="AddSongRoot"
              x:DataType="vm:AddSongViewModel"
@@ -116,19 +117,61 @@
                         </Border>
                     </Grid>
 
-                    <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
-                        <Grid ColumnDefinitions="Auto, *">
-                            <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Album}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
-                            <Entry Grid.Column="1"
-                                   Margin="10,0,15,0"
-                                   Placeholder="Альбом"
-                                   Text="{Binding Album}"
-                                   TextColor="White"
-                                   PlaceholderColor="#808080"
-                                   BackgroundColor="Transparent"
-                                   FontSize="16" />
-                        </Grid>
-                    </Border>
+                    <Grid Margin="0,0,0,20">
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Album}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                                <Entry Grid.Column="1"
+                                       Margin="10,0,15,0"
+                                       Placeholder="Альбом"
+                                       Text="{Binding Album}"
+                                       TextColor="White"
+                                       PlaceholderColor="#808080"
+                                       BackgroundColor="Transparent"
+                                       FontSize="16" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Попап альбомів з прев'ю обкладинки -->
+                        <Border BackgroundColor="#2A2D34" Stroke="#404040" Padding="0" Margin="0,54,0,0"
+                                VerticalOptions="Start" ZIndex="10" MaximumHeightRequest="260"
+                                IsVisible="{Binding IsAlbumSuggestionsVisible}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <CollectionView ItemsSource="{Binding AlbumSuggestions}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="svc:AlbumSuggestion">
+                                        <Grid Padding="10,8" ColumnDefinitions="Auto,*" ColumnSpacing="12" BackgroundColor="Transparent">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={x:Reference AddSongRoot}, Path=BindingContext.SelectAlbumSuggestionCommand}" CommandParameter="{Binding .}" />
+                                            </Grid.GestureRecognizers>
+
+                                            <Border Grid.Column="0" WidthRequest="42" HeightRequest="42" Stroke="Transparent">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="6" />
+                                                </Border.StrokeShape>
+                                                <Image Source="{Binding CoverData, Converter={StaticResource BytesToImageConverter}}"
+                                                       Aspect="AspectFill" />
+                                            </Border>
+
+                                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                <Label Text="{Binding Title}" FontSize="15" FontAttributes="Bold" TextColor="White" />
+                                                <Label Text="{Binding ArtistName}" FontSize="12" TextColor="#808080" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Border>
+                    </Grid>
+
+                    <!-- Статус: звідки взято обкладинку -->
+                    <Label Text="{Binding CoverStatusText}"
+                           TextColor="#8A2BE2"
+                           FontSize="12"
+                           IsVisible="{Binding CoverStatusText, Converter={StaticResource StringNotEmptyConverter}}"
+                           Margin="4,0,0,12" />
 
                     <Border BackgroundColor="#18191C"
                             Stroke="#8A2BE2"

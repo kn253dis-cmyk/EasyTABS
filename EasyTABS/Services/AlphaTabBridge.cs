@@ -77,6 +77,9 @@ namespace EasyTABS.Services
             return true;
         }
 
+        // Публічний вхід для Windows-каналу (WebView2 postMessage).
+        public void DispatchMessage(string message) => Dispatch(message);
+
         private void Dispatch(string message)
         {
             // Формат: "type" або "type:payload".

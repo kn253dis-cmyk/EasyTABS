@@ -154,6 +154,34 @@
                            HorizontalOptions="Center"
                            HorizontalTextAlignment="Center" />
                 </VerticalStackLayout>
+
+                <!-- Плашка живого фідбеку мікрофона -->
+                <Border IsVisible="{Binding IsNoteCheckOn}"
+                        BackgroundColor="#DD1A1A1A"
+                        Stroke="{Binding MicStatusColor}"
+                        StrokeThickness="2"
+                        Padding="14,8"
+                        Margin="0,14,14,0"
+                        HorizontalOptions="End"
+                        VerticalOptions="Start">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                        <mi:MauiIcon Icon="{mi:Material Mic}" IconColor="{Binding MicStatusColor}" IconSize="22" VerticalOptions="Center" />
+                        <Label Text="{Binding MicNoteText}"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               VerticalOptions="Center"
+                               WidthRequest="44"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding MicStatusText}"
+                               FontSize="13"
+                               TextColor="{Binding MicStatusColor}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
             </Grid>
         </Border>
 

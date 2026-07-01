@@ -22,9 +22,24 @@ namespace EasyTABS.ViewModels
         // не відкривала попап знову.
         private bool _suppressSongFilter;
         private bool _suppressArtistFilter;
+        private bool _suppressAlbumFilter;
+
+        // Обкладинка, взята з обраного існуючого альбому (щоб не завантажувати знову).
+        private byte[]? _selectedAlbumCover;
+        private string _coverStatusText = string.Empty;
 
         public ObservableCollection<string> SongSuggestions { get; } = new();
         public ObservableCollection<string> ArtistSuggestions { get; } = new();
+        public ObservableCollection<AlbumSuggestion> AlbumSuggestions { get; } = new();
+
+        private bool _isAlbumSuggestionsVisible;
+        public bool IsAlbumSuggestionsVisible
+        {
+            get => _isAlbumSuggestionsVisible;
+            set => SetProperty(ref _isAlbumSuggestionsVisible, value);
+        }
+
+        public string CoverStatusText { get => _coverStatusText; set => SetProperty(ref _coverStatusText, value); }
 
         private bool _isSongSuggestionsVisible;
         public bool IsSongSuggestionsVisible
@@ -52,7 +67,19 @@ namespace EasyTABS.ViewModels
             set { if (SetProperty(ref _artist, value) && !_suppressArtistFilter) _ = FilterArtistsAsync(); }
         }
 
-        public string Album { get => _album; set => SetProperty(ref _album, value); }
+        public string Album
+        {
+            get => _album;
+            set
+            {
+                if (SetProperty(ref _album, value) && !_suppressAlbumFilter)
+                {
+                    // Ручна зміна назви альбому скидає прив'язку до існуючої обкладинки.
+                    _selectedAlbumCover = null;
+                    _ = FilterAlbumsAsync();
+                }
+            }
+        }
         public string FileStatusText { get => _fileStatusText; set => SetProperty(ref _fileStatusText, value); }
         public bool IsFileSelected { get => _isFileSelected; set => SetProperty(ref _isFileSelected, value); }
         public string ErrorMessage { get => _errorMessage; set => SetProperty(ref _errorMessage, value); }
@@ -62,6 +89,7 @@ namespace EasyTABS.ViewModels
         public ICommand AddCommand { get; }
         public ICommand SelectSongSuggestionCommand { get; }
         public ICommand SelectArtistSuggestionCommand { get; }
+        public ICommand SelectAlbumSuggestionCommand { get; }
 
         public AddSongViewModel()
         {
@@ -89,6 +117,34 @@ namespace EasyTABS.ViewModels
                     Artist = name;
                     _suppressArtistFilter = false;
                     IsArtistSuggestionsVisible = false;
+                }
+                return Task.CompletedTask;
+            });
+
+            SelectAlbumSuggestionCommand = new RelayCommand(o =>
+            {
+                if (o is AlbumSuggestion album)
+                {
+                    _suppressAlbumFilter = true;
+                    Album = album.Title;
+                    _suppressAlbumFilter = false;
+                    IsAlbumSuggestionsVisible = false;
+
+                    // Використовуємо наявну обкладинку альбому — завантажувати не треба.
+                    _selectedAlbumCover = album.CoverData;
+                    if (album.CoverData is { Length: > 0 })
+                    {
+                        CoverStatusText = $"Обкладинку взято з альбому «{album.Title}»";
+                        _coverPath = string.Empty; // скидаємо ручний файл
+                    }
+
+                    // Якщо артист порожній — підставляємо артиста альбому.
+                    if (string.IsNullOrWhiteSpace(Artist) && !string.IsNullOrWhiteSpace(album.ArtistName))
+                    {
+                        _suppressArtistFilter = true;
+                        Artist = album.ArtistName;
+                        _suppressArtistFilter = false;
+                    }
                 }
                 return Task.CompletedTask;
             });
@@ -136,6 +192,31 @@ namespace EasyTABS.ViewModels
             catch { }
 
             IsArtistSuggestionsVisible = ArtistSuggestions.Count > 0;
+        }
+
+        private async Task FilterAlbumsAsync()
+        {
+            var query = Album?.Trim() ?? string.Empty;
+            AlbumSuggestions.Clear();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                IsAlbumSuggestionsVisible = false;
+                CoverStatusText = string.Empty;
+                return;
+            }
+
+            try
+            {
+                // Якщо вказано артиста — фільтруємо альбоми тільки його.
+                var artist = string.IsNullOrWhiteSpace(Artist) ? null : Artist.Trim();
+                var albums = await _repo.GetAlbumSuggestionsAsync(query, artist);
+                foreach (var a in albums)
+                    AlbumSuggestions.Add(a);
+            }
+            catch { }
+
+            IsAlbumSuggestionsVisible = AlbumSuggestions.Count > 0;
         }
 
         private async Task PickFileAsync()
@@ -195,6 +276,7 @@ namespace EasyTABS.ViewModels
             ErrorMessage = string.Empty;
             IsSongSuggestionsVisible = false;
             IsArtistSuggestionsVisible = false;
+            IsAlbumSuggestionsVisible = false;
 
             if (string.IsNullOrWhiteSpace(SongName) || string.IsNullOrWhiteSpace(Artist))
             {
@@ -212,8 +294,11 @@ namespace EasyTABS.ViewModels
                     tabFileName = Path.GetFileName(_selectedFilePath);
                 }
 
-                byte[]? coverBytes = null;
-                if (!string.IsNullOrEmpty(_coverPath) && File.Exists(_coverPath))
+                // Обкладинка: пріоритет — обрана з існуючого альбому,
+                // інакше вручну завантажений файл.
+                byte[]? coverBytes = _selectedAlbumCover;
+                if (coverBytes is null &&
+                    !string.IsNullOrEmpty(_coverPath) && File.Exists(_coverPath))
                     coverBytes = await File.ReadAllBytesAsync(_coverPath);
 
                 await _repo.AddSongAsync(SongName.Trim(), Artist.Trim(), Album?.Trim() ?? "",
