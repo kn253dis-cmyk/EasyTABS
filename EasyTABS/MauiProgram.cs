@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MauiIcons.Material;
+using Microsoft.Extensions.Logging;
 
 namespace EasyTABS
 {
@@ -24,7 +25,8 @@ namespace EasyTABS
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                     fonts.AddFont("MaterialSymbols-Regular.ttf", "MaterialSymbols");
-                });
+                })
+                .UseMaterialMauiIcons();
 
 #if DEBUG
             builder.Logging.AddDebug();

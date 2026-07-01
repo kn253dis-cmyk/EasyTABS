@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>AlphaTab</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        #alphaTab {
+            background-color: #121212;
+        }
+
+        /* Підсвічування нот, які зараз звучать */
+        .at-cursor-bar {
+            background: rgba(138, 43, 226, 0.18);
+        }
+        .at-cursor-beat {
+            background: rgba(138, 43, 226, 0.85);
+            width: 2px;
+        }
+        .at-highlight * {
+            fill: #8A2BE2 !important;
+            stroke: #8A2BE2 !important;
+        }
+
+        #status {
+            padding: 16px;
+            font-size: 15px;
+            color: #808080;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">Завантаження рушія…</div>
+    <div id="alphaTab"></div>
+
+    <!-- AlphaTab з CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.6.0/dist/alphaTab.min.js"></script>
+    <script>
+        // ---- Міст C# <-> JS ----------------------------------------------
+        // JS -> C#: створюємо тимчасовий iframe з кастомним src. MAUI WebView
+        // ловить це в Navigating на всіх платформах (надійніше за зміну hash,
+        // яка в межах того самого документа може не тригерити навігацію).
+        function notifyHost(type, payload) {
+            var msg = type + (payload !== undefined ? ":" + payload : "");
+            try {
+                var iframe = document.createElement("iframe");
+                iframe.style.display = "none";
+                iframe.src = "athost://msg?data=" + encodeURIComponent(msg);
+                document.body.appendChild(iframe);
+                // Прибираємо одразу — подія вже спрацювала синхронно.
+                setTimeout(function () {
+                    iframe.parentNode && iframe.parentNode.removeChild(iframe);
+                }, 0);
+            } catch (e) { }
+        }
+
+        var api = null;
+        var expectedMidi = -1;
+
+        function setStatus(text) {
+            var el = document.getElementById("status");
+            if (!text) { el.style.display = "none"; return; }
+            el.style.display = "block";
+            el.textContent = text;
+        }
+
+        function initAlphaTab() {
+            if (typeof alphaTab === "undefined") {
+                setStatus("Не вдалося завантажити AlphaTab (перевірте інтернет).");
+                notifyHost("error", "cdn_failed");
+                return;
+            }
+
+            var settings = {
+                core: {
+                    engine: "svg",
+                    logLevel: 1,
+                    fontDirectory: "https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.6.0/dist/font/"
+                },
+                display: {
+                    layoutMode: "page",
+                    staveProfile: "tab",
+                    resources: {
+                        mainGlyphColor: "#FFFFFF",
+                        secondaryGlyphColor: "#CFCFCF",
+                        staffLineColor: "#606060",
+                        barSeparatorColor: "#808080",
+                        barNumberColor: "#8A2BE2",
+                        scoreInfoColor: "#FFFFFF"
+                    }
+                },
+                player: {
+                    enablePlayer: true,
+                    enableCursor: true,
+                    enableUserInteraction: true,
+                    soundFont: "https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.6.0/dist/soundfont/sonivox.sf2",
+                    scrollMode: "continuous"
+                }
+            };
+
+            api = new alphaTab.AlphaTabApi(document.getElementById("alphaTab"), settings);
+
+            api.scoreLoaded.on(function (score) {
+                var tracks = [];
+                for (var i = 0; i < score.tracks.length; i++) {
+                    tracks.push({ index: i, name: score.tracks[i].name || ("Доріжка " + (i + 1)) });
+                }
+                notifyHost("scoreLoaded", JSON.stringify({
+                    title: score.title || "",
+                    tempo: score.tempo || 120,
+                    tracks: tracks
+                }));
+                setStatus("");
+            });
+
+            api.renderStarted.on(function () { notifyHost("renderStarted"); });
+            api.renderFinished.on(function () { notifyHost("renderFinished"); });
+
+            api.playerReady.on(function () { notifyHost("playerReady"); });
+
+            api.playerStateChanged.on(function (e) {
+                // 0 = paused, 1 = playing
+                notifyHost("playerState", e.state);
+            });
+
+            api.playerPositionChanged.on(function (e) {
+                notifyHost("position", JSON.stringify({
+                    current: Math.round(e.currentTime),
+                    end: Math.round(e.endTime)
+                }));
+            });
+
+            // Активні ноти -> дістаємо MIDI-висоту для перевірки мікрофоном.
+            api.activeBeatsChanged.on(function (e) {
+                var midi = -1;
+                if (e.activeBeats && e.activeBeats.length > 0) {
+                    var beat = e.activeBeats[0];
+                    if (beat.notes && beat.notes.length > 0) {
+                        // Беремо найвищу ноту біта як орієнтир.
+                        for (var i = 0; i < beat.notes.length; i++) {
+                            var rp = beat.notes[i].realValue;
+                            if (rp > midi) midi = rp;
+                        }
+                    }
+                }
+                expectedMidi = midi;
+                notifyHost("activeNote", midi);
+            });
+
+            notifyHost("ready");
+            setStatus("Оберіть пісню…");
+        }
+
+        // ---- Команди від C# ----------------------------------------------
+        function loadScoreBase64(b64) {
+            if (!api) return;
+            setStatus("Рендеринг табулатури…");
+            var binary = atob(b64);
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            api.load(bytes.buffer);
+        }
+
+        function playPause() { if (api) api.playPause(); }
+        function stop() { if (api) api.stop(); }
+
+        function setTrack(index) {
+            if (!api || !api.score) return;
+            var t = api.score.tracks[index];
+            if (t) api.renderTracks([t]);
+        }
+
+        function setSpeed(factor) { if (api) api.playbackSpeed = factor; }
+        function setMetronome(on) { if (api) api.metronomeVolume = on ? 1 : 0; }
+        function setMasterVolume(v) { if (api) api.masterVolume = v; }
+        function seek(ms) { if (api) api.timePosition = ms; }
+
+        if (document.readyState === "complete") initAlphaTab();
+        else window.addEventListener("load", initAlphaTab);
+    </script>
+</body>
+</html>

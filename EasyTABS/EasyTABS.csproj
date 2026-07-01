@@ -25,7 +25,7 @@
 		     For individual files, you can override by setting Inflator metadata:
 		       <MauiXaml Update="MyPage.xaml" Inflator="Default" /> (reverts to defaults: Runtime for Debug, XamlC for Release)
 		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
-		<MauiXamlInflator>SourceGen</MauiXamlInflator>
+		<!-- <MauiXamlInflator>SourceGen</MauiXamlInflator> -->
 
 		<!-- Display name -->
 		<ApplicationTitle>EasyTABS</ApplicationTitle>
@@ -67,6 +67,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Core" Version="6.0.0" />
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Material" Version="6.0.0" />
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Material.Outlined" Version="6.0.0" />
 		<PackageReference Include="AlphaTab" Version="1.8.3" />
 		<PackageReference Include="ManagedBass" Version="4.0.2" />
 		<PackageReference Include="ManagedBass.Fx" Version="4.0.2" />

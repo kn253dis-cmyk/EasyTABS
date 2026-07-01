@@ -68,5 +68,51 @@ namespace EasyTABS.Services
             var song = await db.Songs.FirstOrDefaultAsync(s => s.Id == songId);
             return (song?.TabData, song?.TabFileName ?? string.Empty);
         }
+
+        // Повна пісня з артистом для сторінки плеєра.
+        public async Task<Song?> GetSongByIdAsync(int songId)
+        {
+            using var db = new Database();
+            return await db.Songs
+                .Include(s => s.Artist)
+                .FirstOrDefaultAsync(s => s.Id == songId);
+        }
+
+        // Унікальні імена артистів (для підказок у полі "Виконавець").
+        public async Task<List<string>> GetArtistNamesAsync(string query)
+        {
+            using var db = new Database();
+            var q = db.Artists.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                query = query.Trim();
+                q = q.Where(a => EF.Functions.ILike(a.Name, $"%{query}%"));
+            }
+
+            return await q.OrderBy(a => a.Name)
+                          .Select(a => a.Name)
+                          .Take(6)
+                          .ToListAsync();
+        }
+
+        // Підказки назв пісень (для поля "Назва пісні").
+        public async Task<List<string>> GetSongTitlesAsync(string query)
+        {
+            using var db = new Database();
+            var q = db.Songs.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                query = query.Trim();
+                q = q.Where(s => EF.Functions.ILike(s.Title, $"%{query}%"));
+            }
+
+            return await q.OrderBy(s => s.Title)
+                          .Select(s => s.Title)
+                          .Distinct()
+                          .Take(6)
+                          .ToListAsync();
+        }
     }
 }

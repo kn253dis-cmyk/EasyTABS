@@ -12,13 +12,17 @@ namespace EasyTABS.ViewModels
         private string _searchText = string.Empty;
         private Song? _selectedSong;
 
+        // Прапорець, щоб програмна зміна SearchText (після вибору пісні)
+        // не відкривала попап знову.
+        private bool _suppressFilter;
+
         public ObservableCollection<Song> Songs { get; } = new();
         public ObservableCollection<Song> Suggestions { get; } = new();
 
         public string SearchText
         {
             get => _searchText;
-            set { if (SetProperty(ref _searchText, value)) _ = ApplyFilterAsync(); }
+            set { if (SetProperty(ref _searchText, value) && !_suppressFilter) _ = ApplyFilterAsync(); }
         }
 
         private bool _isSuggestionsVisible;
@@ -42,10 +46,16 @@ namespace EasyTABS.ViewModels
         {
             OpenTunerCommand = new RelayCommand(async _ => await Shell.Current.GoToAsync("TunerPage"));
             AddSongCommand = new RelayCommand(async _ => await Shell.Current.GoToAsync("AddSongPage"));
-            SearchCommand = new RelayCommand(async _ => await ApplyFilterAsync());
-
-            _ = ApplyFilterAsync();
+            SearchCommand = new RelayCommand(async _ =>
+            {
+                // Явний пошук ховає попап — користувач уже "підтвердив" запит.
+                await ApplyFilterAsync();
+                IsSuggestionsVisible = false;
+            });
         }
+
+        // Оновлення списку при поверненні на сторінку (нова пісня могла додатись).
+        public async Task RefreshAsync() => await ApplyFilterAsync();
 
         private async Task ApplyFilterAsync()
         {
@@ -66,17 +76,34 @@ namespace EasyTABS.ViewModels
                 Songs.Add(song);
 
             Suggestions.Clear();
-            if (!string.IsNullOrEmpty(query))
-                foreach (var song in filtered.Take(5))
-                    Suggestions.Add(song);
+
+            // Попап показуємо ЛИШЕ коли є непорожній запит І знайдено збіги.
+            // Порожнє поле -> попап гарантовано ховається.
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                IsSuggestionsVisible = false;
+                return;
+            }
+
+            foreach (var song in filtered.Take(5))
+                Suggestions.Add(song);
 
             IsSuggestionsVisible = Suggestions.Count > 0;
         }
 
         private async Task OpenSongAsync(Song song)
         {
-            await Shell.Current.DisplayAlertAsync(song.Title, $"Виконавець: {song.Artist?.Name}", "OK");
+            // Ховаємо попап і скидаємо виділення перед навігацією.
+            IsSuggestionsVisible = false;
+
+            _suppressFilter = true;
+            SearchText = song.Title;
+            _suppressFilter = false;
+
+            var id = song.Id;
             SelectedSong = null;
+
+            await Shell.Current.GoToAsync($"TabsPlayerPage?songId={id}");
         }
     }
 }

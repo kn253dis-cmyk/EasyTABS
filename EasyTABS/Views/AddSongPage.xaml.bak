@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EasyTABS.ViewModels"
-             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             xmlns:material="clr-namespace:MauiIcons.Material;assembly=MauiIcons.Material"
              x:Class="EasyTABS.Views.AddSongPage"
              x:Name="AddSongRoot"
              x:DataType="vm:AddSongViewModel"
@@ -36,7 +36,7 @@
                 <VerticalStackLayout Spacing="0">
 
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="12" Margin="0,0,0,28">
-                        <mi:MauiIcon Icon="{mi:Material LibraryMusic}" IconSize="32" IconColor="#8A2BE2" VerticalOptions="Center" />
+                        <material:MaterialIcon Icon="LibraryMusic" FontSize="32" Color="#8A2BE2" VerticalOptions="Center"/>
                         <Label Text="Додайте свою пісню"
                                FontSize="28"
                                FontAttributes="Bold"
@@ -47,8 +47,8 @@
                     <Grid Margin="0,0,0,20">
                         <Border Style="{StaticResource FieldBorder}">
                             <Grid ColumnDefinitions="Auto, *">
-                                <mi:MauiIcon Grid.Column="0" Icon="{mi:Material MusicNote}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
-                                <Entry Grid.Column="1"
+                                <material:MaterialIcon Grid.Column="0" Icon="MusicNote" Color="#808080" FontSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                                <Entry Grid.Column="1" 
                                        Margin="10,0,15,0"
                                        Placeholder="Назва пісні"
                                        Text="{Binding SongName}"
@@ -83,8 +83,8 @@
                     <Grid Margin="0,0,0,20">
                         <Border Style="{StaticResource FieldBorder}">
                             <Grid ColumnDefinitions="Auto, *">
-                                <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Person}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
-                                <Entry Grid.Column="1"
+                                <material:MaterialIcon Grid.Column="0" Icon="Person" Color="#808080" FontSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                                <Entry Grid.Column="1" 
                                        Margin="10,0,15,0"
                                        Placeholder="Виконавець"
                                        Text="{Binding Artist}"
@@ -118,8 +118,8 @@
 
                     <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
                         <Grid ColumnDefinitions="Auto, *">
-                            <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Album}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
-                            <Entry Grid.Column="1"
+                            <material:MaterialIcon Grid.Column="0" Icon="Album" Color="#808080" FontSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                            <Entry Grid.Column="1" 
                                    Margin="10,0,15,0"
                                    Placeholder="Альбом"
                                    Text="{Binding Album}"
@@ -144,19 +144,19 @@
 
                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
 
-                            <mi:MauiIcon Icon="{mi:Material UploadFile}"
-                                         IconSize="50"
-                                         IconColor="#8A2BE2"
-                                         HorizontalOptions="Center"
-                                         IsVisible="{Binding IsFileSelected, Converter={StaticResource InverseBoolConverter}}"
-                                         Margin="0,0,0,10" />
+                            <material:MaterialIcon Icon="UploadFile" 
+                                                   FontSize="50" 
+                                                   Color="#8A2BE2" 
+                                                   HorizontalOptions="Center" 
+                                                   IsVisible="{Binding IsFileSelected, Converter={StaticResource InverseBoolConverter}}"
+                                                   Margin="0,0,0,10" />
 
-                            <mi:MauiIcon Icon="{mi:Material CheckCircle}"
-                                         IconSize="60"
-                                         IconColor="LimeGreen"
-                                         HorizontalOptions="Center"
-                                         IsVisible="{Binding IsFileSelected}"
-                                         Margin="0,0,0,10" />
+                            <material:MaterialIcon Icon="CheckCircle" 
+                                                   FontSize="60" 
+                                                   Color="LimeGreen" 
+                                                   HorizontalOptions="Center" 
+                                                   IsVisible="{Binding IsFileSelected}"
+                                                   Margin="0,0,0,10" />
 
                             <Label Text="{Binding FileStatusText}"
                                    FontSize="16"
@@ -181,7 +181,7 @@
                             <TapGestureRecognizer Command="{Binding PickCoverCommand}" />
                         </Border.GestureRecognizers>
                         <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
-                            <mi:MauiIcon Icon="{mi:Material Image}" IconColor="White" IconSize="20" />
+                            <material:MaterialIcon Icon="Image" Color="White" FontSize="20" />
                             <Label Text="Обрати обкладинку (необов'язково)" TextColor="White" FontSize="14" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>
@@ -200,7 +200,7 @@
                             <TapGestureRecognizer Command="{Binding AddCommand}" />
                         </Border.GestureRecognizers>
                         <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
-                            <mi:MauiIcon Icon="{mi:Material AddCircleOutline}" IconColor="White" IconSize="24" />
+                            <material:MaterialIcon Icon="AddCircleOutline" Color="White" FontSize="24" />
                             <Label Text="Додати в бібліотеку" TextColor="White" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>

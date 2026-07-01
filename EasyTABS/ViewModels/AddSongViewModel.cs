@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using EasyTABS.Services;
 using System.IO;
@@ -17,8 +18,40 @@ namespace EasyTABS.ViewModels
         private bool _isFileSelected;
         private string _errorMessage = string.Empty;
 
-        public string SongName { get => _songName; set => SetProperty(ref _songName, value); }
-        public string Artist { get => _artist; set => SetProperty(ref _artist, value); }
+        // Прапорці, щоб програмна підстановка тексту (після вибору підказки)
+        // не відкривала попап знову.
+        private bool _suppressSongFilter;
+        private bool _suppressArtistFilter;
+
+        public ObservableCollection<string> SongSuggestions { get; } = new();
+        public ObservableCollection<string> ArtistSuggestions { get; } = new();
+
+        private bool _isSongSuggestionsVisible;
+        public bool IsSongSuggestionsVisible
+        {
+            get => _isSongSuggestionsVisible;
+            set => SetProperty(ref _isSongSuggestionsVisible, value);
+        }
+
+        private bool _isArtistSuggestionsVisible;
+        public bool IsArtistSuggestionsVisible
+        {
+            get => _isArtistSuggestionsVisible;
+            set => SetProperty(ref _isArtistSuggestionsVisible, value);
+        }
+
+        public string SongName
+        {
+            get => _songName;
+            set { if (SetProperty(ref _songName, value) && !_suppressSongFilter) _ = FilterSongsAsync(); }
+        }
+
+        public string Artist
+        {
+            get => _artist;
+            set { if (SetProperty(ref _artist, value) && !_suppressArtistFilter) _ = FilterArtistsAsync(); }
+        }
+
         public string Album { get => _album; set => SetProperty(ref _album, value); }
         public string FileStatusText { get => _fileStatusText; set => SetProperty(ref _fileStatusText, value); }
         public bool IsFileSelected { get => _isFileSelected; set => SetProperty(ref _isFileSelected, value); }
@@ -27,12 +60,82 @@ namespace EasyTABS.ViewModels
         public ICommand PickFileCommand { get; }
         public ICommand PickCoverCommand { get; }
         public ICommand AddCommand { get; }
+        public ICommand SelectSongSuggestionCommand { get; }
+        public ICommand SelectArtistSuggestionCommand { get; }
 
         public AddSongViewModel()
         {
             PickFileCommand = new RelayCommand(async _ => await PickFileAsync());
             PickCoverCommand = new RelayCommand(async _ => await PickCoverAsync());
             AddCommand = new RelayCommand(async _ => await AddAsync());
+
+            SelectSongSuggestionCommand = new RelayCommand(o =>
+            {
+                if (o is string title)
+                {
+                    _suppressSongFilter = true;
+                    SongName = title;
+                    _suppressSongFilter = false;
+                    IsSongSuggestionsVisible = false;
+                }
+                return Task.CompletedTask;
+            });
+
+            SelectArtistSuggestionCommand = new RelayCommand(o =>
+            {
+                if (o is string name)
+                {
+                    _suppressArtistFilter = true;
+                    Artist = name;
+                    _suppressArtistFilter = false;
+                    IsArtistSuggestionsVisible = false;
+                }
+                return Task.CompletedTask;
+            });
+        }
+
+        private async Task FilterSongsAsync()
+        {
+            var query = SongName?.Trim() ?? string.Empty;
+            SongSuggestions.Clear();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                IsSongSuggestionsVisible = false;
+                return;
+            }
+
+            try
+            {
+                var titles = await _repo.GetSongTitlesAsync(query);
+                foreach (var t in titles)
+                    SongSuggestions.Add(t);
+            }
+            catch { }
+
+            IsSongSuggestionsVisible = SongSuggestions.Count > 0;
+        }
+
+        private async Task FilterArtistsAsync()
+        {
+            var query = Artist?.Trim() ?? string.Empty;
+            ArtistSuggestions.Clear();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                IsArtistSuggestionsVisible = false;
+                return;
+            }
+
+            try
+            {
+                var names = await _repo.GetArtistNamesAsync(query);
+                foreach (var n in names)
+                    ArtistSuggestions.Add(n);
+            }
+            catch { }
+
+            IsArtistSuggestionsVisible = ArtistSuggestions.Count > 0;
         }
 
         private async Task PickFileAsync()
@@ -54,7 +157,7 @@ namespace EasyTABS.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"Не вдалося обрати файл: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"PickCover FULL: {ex}");
+                System.Diagnostics.Debug.WriteLine($"PickFile FULL: {ex}");
             }
         }
 
@@ -90,6 +193,8 @@ namespace EasyTABS.ViewModels
         private async Task AddAsync()
         {
             ErrorMessage = string.Empty;
+            IsSongSuggestionsVisible = false;
+            IsArtistSuggestionsVisible = false;
 
             if (string.IsNullOrWhiteSpace(SongName) || string.IsNullOrWhiteSpace(Artist))
             {
@@ -119,7 +224,6 @@ namespace EasyTABS.ViewModels
             }
             catch (InvalidOperationException dup)
             {
-
                 ErrorMessage = dup.Message;
             }
             catch (Exception ex)
@@ -127,7 +231,6 @@ namespace EasyTABS.ViewModels
                 var inner = ex;
                 while (inner.InnerException is not null) inner = inner.InnerException;
                 ErrorMessage = $"Не вдалося зберегти: {inner.Message}";
-                //System.Diagnostics.Debug.WriteLine($"AddSong FULL: {ex}");
             }
         }
     }
