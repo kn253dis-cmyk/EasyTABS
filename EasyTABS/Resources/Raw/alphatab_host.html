@@ -113,10 +113,46 @@
             api.scoreLoaded.on(function (score) {
                 var tracks = [];
                 for (var i = 0; i < score.tracks.length; i++) {
-                    tracks.push({ index: i, name: score.tracks[i].name || ("Доріжка " + (i + 1)) });
+                    var tr = score.tracks[i];
+
+                    // Кількість тактів (беремо з першого staff) і чи є ноти.
+                    var barCount = 0;
+                    var hasNotes = false;
+                    var stringCount = 6;
+                    try {
+                        if (tr.staves && tr.staves.length > 0) {
+                            var staff = tr.staves[0];
+                            if (staff.bars) barCount = staff.bars.length;
+                            if (staff.stringTuning && staff.stringTuning.tunings)
+                                stringCount = staff.stringTuning.tunings.length;
+                            // Швидка перевірка наявності нот.
+                            outer:
+                            for (var b = 0; b < staff.bars.length; b++) {
+                                var voices = staff.bars[b].voices || [];
+                                for (var v = 0; v < voices.length; v++) {
+                                    var beats = voices[v].beats || [];
+                                    for (var be = 0; be < beats.length; be++) {
+                                        if (beats[be].notes && beats[be].notes.length > 0) {
+                                            hasNotes = true;
+                                            break outer;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (err) { }
+
+                    tracks.push({
+                        index: i,
+                        name: tr.name || ("Доріжка " + (i + 1)),
+                        bars: barCount,
+                        strings: stringCount,
+                        hasNotes: hasNotes
+                    });
                 }
                 notifyHost("scoreLoaded", JSON.stringify({
                     title: score.title || "",
+                    artist: score.artist || "",
                     tempo: score.tempo || 120,
                     tracks: tracks
                 }));

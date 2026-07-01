@@ -1,8 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EasyTABS.ViewModels"
              xmlns:drawables="clr-namespace:EasyTABS.Views"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="EasyTABS.Views.TunerPage"
              x:DataType="vm:TunerViewModel"
              Title="Хроматичний тюнер"
@@ -36,6 +37,7 @@
                 <RoundRectangle CornerRadius="12" />
             </Border.StrokeShape>
             <HorizontalStackLayout Spacing="12">
+                <mi:MauiIcon Icon="{mi:Material MusicNote}" IconColor="#B0B0B0" IconSize="20" VerticalOptions="Center" />
                 <Label Text="Тюнер"
                        FontSize="14"
                        TextColor="#B0B0B0"
@@ -48,10 +50,11 @@
                        FontSize="14"
                        TextColor="#B0B0B0"
                        VerticalOptions="Center" />
+                <mi:MauiIcon Icon="{mi:Material Piano}" IconColor="#B0B0B0" IconSize="20" VerticalOptions="Center" />
             </HorizontalStackLayout>
         </Border>
 
-        <!-- Компактний рядок: нота / акорд + частота (менший шрифт) -->
+        <!-- Компактний рядок: нота / акорд + частота -->
         <HorizontalStackLayout Grid.Row="1"
                                HorizontalOptions="Center"
                                Spacing="14">
@@ -89,23 +92,31 @@
                                HorizontalOptions="Center"
                                Spacing="20"
                                Margin="0,0,0,10">
-            <Button Text="Слухати"
-                    Command="{Binding StartCommand}"
-                    WidthRequest="140"
-                    HeightRequest="48"
-                    BackgroundColor="LimeGreen"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    CornerRadius="10" />
+            <Border BackgroundColor="LimeGreen" WidthRequest="150" HeightRequest="48" Stroke="Transparent">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding StartCommand}" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+                    <mi:MauiIcon Icon="{mi:Material Mic}" IconColor="White" IconSize="22" />
+                    <Label Text="Слухати" TextColor="White" FontAttributes="Bold" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
 
-            <Button Text="Зупинити"
-                    Command="{Binding StopCommand}"
-                    WidthRequest="140"
-                    HeightRequest="48"
-                    BackgroundColor="Crimson"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    CornerRadius="10" />
+            <Border BackgroundColor="Crimson" WidthRequest="150" HeightRequest="48" Stroke="Transparent">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding StopCommand}" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+                    <mi:MauiIcon Icon="{mi:Material Stop}" IconColor="White" IconSize="22" />
+                    <Label Text="Зупинити" TextColor="White" FontAttributes="Bold" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
         </HorizontalStackLayout>
     </Grid>
 </ContentPage>

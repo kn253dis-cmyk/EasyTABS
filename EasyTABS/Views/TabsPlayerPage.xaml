@@ -1,7 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EasyTABS.ViewModels"
+             xmlns:svc="clr-namespace:EasyTABS.Services"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="EasyTABS.Views.TabsPlayerPage"
              x:Name="PlayerRoot"
              x:DataType="vm:TabsPlayerViewModel"
@@ -12,9 +14,15 @@
         <vm:TabsPlayerViewModel />
     </ContentPage.BindingContext>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#1E1E24" Offset="0" />
+                <GradientStop Color="#121212" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
 
-        <!-- Шапка: обкладинка + назва + вибір доріжки -->
+        <!-- Шапка: обкладинка + назва + кнопка доріжок -->
         <Border Grid.Row="0"
                 BackgroundColor="#202124"
                 Stroke="Transparent"
@@ -39,19 +47,81 @@
                     <Label Text="{Binding ArtistName}" FontSize="13" TextColor="#B0B0B0" />
                 </VerticalStackLayout>
 
-                <Picker Grid.Column="2"
-                        Title="Доріжка"
-                        ItemsSource="{Binding Tracks}"
-                        ItemDisplayBinding="{Binding Name}"
-                        SelectedItem="{Binding SelectedTrack}"
-                        TextColor="White"
-                        TitleColor="#8A2BE2"
-                        WidthRequest="150" />
+                <!-- Кнопка "Доріжки" з лічильником -->
+                <Border Grid.Column="2"
+                        BackgroundColor="#2A2D34"
+                        Stroke="#404040"
+                        StrokeThickness="1"
+                        Padding="14,8">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleTrackListCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <mi:MauiIcon Icon="{mi:Material QueueMusic}" IconColor="#8A2BE2" IconSize="22" VerticalOptions="Center" />
+                        <Label Text="{Binding TracksSummary}" TextColor="White" FontSize="14" VerticalOptions="Center" />
+                        <mi:MauiIcon Icon="{mi:Material ExpandMore}" IconColor="#808080" IconSize="20" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
             </Grid>
         </Border>
 
-        <!-- Табулатура у WebView, обгорнута фідбек-рамкою -->
+        <!-- Панель списку доріжок (розкривна) -->
         <Border Grid.Row="1"
+                BackgroundColor="#202124"
+                Stroke="Transparent"
+                Padding="10"
+                Margin="10,8,10,0"
+                IsVisible="{Binding IsTrackListVisible}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Доріжки партитури"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="#8A2BE2"
+                       Margin="6,2,0,4" />
+                <CollectionView ItemsSource="{Binding Tracks}"
+                                MaximumHeightRequest="220"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="svc:TrackInfo">
+                            <Grid Padding="10,8" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference PlayerRoot}, Path=BindingContext.SelectTrackCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+
+                                <mi:MauiIcon Grid.Column="0"
+                                             Icon="{mi:Material MusicNote}"
+                                             IconColor="#8A2BE2"
+                                             IconSize="20"
+                                             VerticalOptions="Center" />
+
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayName}" TextColor="White" FontSize="15" FontAttributes="Bold" />
+                                    <Label Text="{Binding Details}" TextColor="#808080" FontSize="12" />
+                                </VerticalStackLayout>
+
+                                <mi:MauiIcon Grid.Column="2"
+                                             Icon="{mi:Material CheckCircle}"
+                                             IconColor="LimeGreen"
+                                             IconSize="20"
+                                             VerticalOptions="Center"
+                                             IsVisible="{Binding HasNotes}" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Табулатура у WebView, обгорнута фідбек-рамкою -->
+        <Border Grid.Row="2"
                 x:Name="FeedbackBorder"
                 Stroke="{Binding FeedbackColor}"
                 StrokeThickness="3"
@@ -70,21 +140,25 @@
                                      VerticalOptions="Center"
                                      Spacing="10">
                     <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#8A2BE2" />
-                    <Label Text="Завантаження…" TextColor="#808080" />
+                    <Label Text="Завантаження табулатури…" TextColor="#808080" />
                 </VerticalStackLayout>
 
-                <Label Text="{Binding StatusMessage}"
-                       IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
-                       TextColor="#FF6B6B"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Start"
-                       Margin="20"
-                       HorizontalTextAlignment="Center" />
+                <VerticalStackLayout IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Start"
+                                     Spacing="8"
+                                     Margin="20">
+                    <mi:MauiIcon Icon="{mi:Material Info}" IconColor="#FF6B6B" IconSize="28" HorizontalOptions="Center" />
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="#FF6B6B"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
             </Grid>
         </Border>
 
         <!-- Панель керування -->
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 BackgroundColor="#202124"
                 Stroke="Transparent"
                 Padding="14"
@@ -116,7 +190,7 @@
 
                 <!-- BPM -->
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                    <Label Grid.Column="0" Text="Темп" TextColor="#B0B0B0" FontSize="13" VerticalOptions="Center" />
+                    <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Speed}" IconColor="#B0B0B0" IconSize="20" VerticalOptions="Center" />
                     <Slider Grid.Column="1"
                             Minimum="{Binding BpmMin}"
                             Maximum="{Binding BpmMax}"
@@ -130,44 +204,58 @@
 
                 <!-- Кнопки -->
                 <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0"
-                            Text="{Binding IsPlaying, Converter={StaticResource PlayPauseGlyphConverter}}"
-                            FontFamily="MaterialSymbols"
-                            FontSize="24"
-                            Command="{Binding PlayPauseCommand}"
-                            BackgroundColor="#8A2BE2" TextColor="White"
-                            HeightRequest="50" CornerRadius="10" Padding="0" />
-                    <Button Grid.Column="1"
-                            Text="&#xe047;"
-                            FontFamily="MaterialSymbols"
-                            FontSize="22"
-                            Command="{Binding StopCommand}"
-                            BackgroundColor="#333333" TextColor="White"
-                            HeightRequest="50" CornerRadius="10" Padding="0" />
-                    <Button Grid.Column="2"
-                            Text="&#xe1b8;"
-                            FontFamily="MaterialSymbols"
-                            FontSize="22"
-                            Command="{Binding ToggleMetronomeCommand}"
+                    <Border Grid.Column="0" BackgroundColor="#8A2BE2" HeightRequest="50" Stroke="Transparent">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding PlayPauseCommand}" />
+                        </Border.GestureRecognizers>
+                        <mi:MauiIcon Icon="{Binding IsPlaying, Converter={StaticResource PlayPauseIconConverter}}"
+                                     IconColor="White" IconSize="26"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
+                    <Border Grid.Column="1" BackgroundColor="#333333" HeightRequest="50" Stroke="Transparent">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding StopCommand}" />
+                        </Border.GestureRecognizers>
+                        <mi:MauiIcon Icon="{mi:Material Stop}" IconColor="White" IconSize="24"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
+                    <Border Grid.Column="2"
                             BackgroundColor="{Binding IsMetronomeOn, Converter={StaticResource BoolToToggleColorConverter}}"
-                            TextColor="White"
-                            HeightRequest="50" CornerRadius="10" Padding="0" />
-                    <Button Grid.Column="3"
-                            Text="&#xe050;"
-                            FontFamily="MaterialSymbols"
-                            FontSize="22"
-                            Command="{Binding ToggleSynthCommand}"
+                            HeightRequest="50" Stroke="Transparent">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleMetronomeCommand}" />
+                        </Border.GestureRecognizers>
+                        <mi:MauiIcon Icon="{mi:Material Timer}" IconColor="White" IconSize="24"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
+                    <Border Grid.Column="3"
                             BackgroundColor="{Binding IsSynthMuted, Converter={StaticResource BoolToMuteColorConverter}}"
-                            TextColor="White"
-                            HeightRequest="50" CornerRadius="10" Padding="0" />
-                    <Button Grid.Column="4"
-                            Text="&#xe029;"
-                            FontFamily="MaterialSymbols"
-                            FontSize="22"
-                            Command="{Binding ToggleNoteCheckCommand}"
+                            HeightRequest="50" Stroke="Transparent">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleSynthCommand}" />
+                        </Border.GestureRecognizers>
+                        <mi:MauiIcon Icon="{Binding IsSynthMuted, Converter={StaticResource MuteIconConverter}}"
+                                     IconColor="White" IconSize="24"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
+                    <Border Grid.Column="4"
                             BackgroundColor="{Binding IsNoteCheckOn, Converter={StaticResource BoolToToggleColorConverter}}"
-                            TextColor="White"
-                            HeightRequest="50" CornerRadius="10" Padding="0" />
+                            HeightRequest="50" Stroke="Transparent">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleNoteCheckCommand}" />
+                        </Border.GestureRecognizers>
+                        <mi:MauiIcon Icon="{mi:Material Mic}" IconColor="White" IconSize="24"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
                 </Grid>
 
                 <Button Text="Назад до бібліотеки"

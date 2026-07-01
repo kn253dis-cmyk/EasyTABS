@@ -18,7 +18,8 @@
             <conv:BytesToImageConverter x:Key="BytesToImageConverter" />
             <conv:BoolToToggleColorConverter x:Key="BoolToToggleColorConverter" />
             <conv:BoolToMuteColorConverter x:Key="BoolToMuteColorConverter" />
-            <conv:PlayPauseGlyphConverter x:Key="PlayPauseGlyphConverter" />
+            <conv:PlayPauseIconConverter x:Key="PlayPauseIconConverter" />
+            <conv:MuteIconConverter x:Key="MuteIconConverter" />
 
             <!-- Обведена рамка для полів вводу (аналог MaterialDesignOutlinedTextBox) -->
             <Style x:Key="FieldBorder" TargetType="Border">

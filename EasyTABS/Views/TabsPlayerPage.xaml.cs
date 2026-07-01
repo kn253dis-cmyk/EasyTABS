@@ -1,5 +1,6 @@
 using EasyTABS.Services;
 using EasyTABS.ViewModels;
+using MauiIcons.Material;
 
 namespace EasyTABS.Views
 {
@@ -10,6 +11,7 @@ namespace EasyTABS.Views
         public TabsPlayerPage()
         {
             InitializeComponent();
+            _ = new MauiIcons.Core.MauiIcon(); // обхід бага MAUI з URL-namespace
             InitWebView();
         }
 

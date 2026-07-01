@@ -1,5 +1,6 @@
 using Microsoft.Maui.Graphics;
 using EasyTABS.ViewModels;
+using MauiIcons.Material;
 
 namespace EasyTABS.Views
 {
@@ -11,6 +12,7 @@ namespace EasyTABS.Views
         public TunerPage()
         {
             InitializeComponent();
+            _ = new MauiIcons.Core.MauiIcon(); // обхід бага MAUI з URL-namespace
 
             _drawable = (TunerDrawable)Resources["TunerDrawable"];
             _vm = BindingContext as TunerViewModel;

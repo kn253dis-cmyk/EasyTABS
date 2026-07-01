@@ -1,8 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EasyTABS.ViewModels"
              xmlns:models="clr-namespace:EasyTABS.Models"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="EasyTABS.Views.MainPage"
              x:DataType="vm:MainViewModel"
              Title="EasyTABS"
@@ -33,36 +34,42 @@
                 <!-- Рядок пошуку -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,0,16">
                     <Border Grid.Column="0" Style="{StaticResource FieldBorder}">
-                        <Entry Placeholder="Знайти пісню..."
-                               Text="{Binding SearchText}"
-                               TextColor="White"
-                               PlaceholderColor="#808080"
-                               BackgroundColor="Transparent"
-                               FontSize="16"
-                               HeightRequest="50" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Search}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Margin="10,0,15,0"
+                                   Placeholder="Знайти пісню..."
+                                   Text="{Binding SearchText}"
+                                   TextColor="White"
+                                   PlaceholderColor="#808080"
+                                   BackgroundColor="Transparent"
+                                   FontSize="16"
+                                   HeightRequest="50" />
+                        </Grid>
                     </Border>
 
-                    <Button Grid.Column="1"
-                            Text="&#xe8b6;"
-                            FontFamily="MaterialSymbols"
-                            FontSize="22"
-                            Command="{Binding SearchCommand}"
-                            WidthRequest="50"
-                            HeightRequest="50"
-                            BackgroundColor="#8A2BE2"
-                            TextColor="White"
-                            CornerRadius="10"
-                            Padding="0" />
+                    <Border Grid.Column="1" BackgroundColor="#8A2BE2" WidthRequest="50" HeightRequest="50" Stroke="Transparent">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SearchCommand}" />
+                        </Border.GestureRecognizers>
+                        <mi:MauiIcon Icon="{mi:Material Search}" IconColor="White" IconSize="24"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
                 </Grid>
 
                 <!-- Список пісень -->
                 <Grid Grid.Row="1" RowDefinitions="Auto,*">
-                    <Label Grid.Row="0"
-                           Text="Усі пісні"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="White"
-                           Margin="4,0,0,10" />
+                    <HorizontalStackLayout Grid.Row="0" Spacing="8" Margin="4,0,0,10">
+                        <mi:MauiIcon Icon="{mi:Material LibraryMusic}" IconColor="#8A2BE2" IconSize="22" VerticalOptions="Center" />
+                        <Label Text="Усі пісні"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
 
                     <CollectionView Grid.Row="1"
                                     ItemsSource="{Binding Songs}"
@@ -77,7 +84,7 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="10" />
                                     </Border.StrokeShape>
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="15">
                                         <Border Grid.Column="0"
                                                 WidthRequest="55"
                                                 HeightRequest="55"
@@ -100,6 +107,12 @@
                                                    TextColor="#B0B0B0"
                                                    Margin="0,4,0,0" />
                                         </VerticalStackLayout>
+
+                                        <mi:MauiIcon Grid.Column="2"
+                                                     Icon="{mi:Material ChevronRight}"
+                                                     IconColor="#606060"
+                                                     IconSize="24"
+                                                     VerticalOptions="Center" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -123,16 +136,19 @@
                                         SelectedItem="{Binding SelectedSong}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:Song">
-                                    <VerticalStackLayout Padding="12,8">
-                                        <Label Text="{Binding Title}"
-                                               FontAttributes="Bold"
-                                               FontSize="15"
-                                               TextColor="White" />
-                                        <Label Text="{Binding Artist.Name}"
-                                               FontSize="13"
-                                               TextColor="#B0B0B0"
-                                               Margin="0,2,0,0" />
-                                    </VerticalStackLayout>
+                                    <Grid Padding="12,8" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <mi:MauiIcon Grid.Column="0" Icon="{mi:Material MusicNote}" IconColor="#8A2BE2" IconSize="20" VerticalOptions="Center" />
+                                        <VerticalStackLayout Grid.Column="1">
+                                            <Label Text="{Binding Title}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="15"
+                                                   TextColor="White" />
+                                            <Label Text="{Binding Artist.Name}"
+                                                   FontSize="13"
+                                                   TextColor="#B0B0B0"
+                                                   Margin="0,2,0,0" />
+                                        </VerticalStackLayout>
+                                    </Grid>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
@@ -141,25 +157,31 @@
 
                 <!-- Нижні кнопки -->
                 <Grid Grid.Row="2" ColumnDefinitions="*,20,*" Margin="0,16,0,0">
-                    <Button Grid.Column="0"
-                            Text="Тюнер"
-                            Command="{Binding OpenTunerCommand}"
-                            HeightRequest="55"
-                            BackgroundColor="#333333"
-                            TextColor="White"
-                            FontSize="16"
-                            FontAttributes="Bold"
-                            CornerRadius="12" />
+                    <Border Grid.Column="0" BackgroundColor="#333333" HeightRequest="55" Stroke="Transparent">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenTunerCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                            <mi:MauiIcon Icon="{mi:Material Tune}" IconColor="White" IconSize="22" />
+                            <Label Text="Тюнер" TextColor="White" FontSize="16" FontAttributes="Bold" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                    <Button Grid.Column="2"
-                            Text="Додати пісню"
-                            Command="{Binding AddSongCommand}"
-                            HeightRequest="55"
-                            BackgroundColor="#8A2BE2"
-                            TextColor="White"
-                            FontSize="16"
-                            FontAttributes="Bold"
-                            CornerRadius="12" />
+                    <Border Grid.Column="2" BackgroundColor="#8A2BE2" HeightRequest="55" Stroke="Transparent">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding AddSongCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                            <mi:MauiIcon Icon="{mi:Material Add}" IconColor="White" IconSize="24" />
+                            <Label Text="Додати пісню" TextColor="White" FontSize="16" FontAttributes="Bold" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
                 </Grid>
 
             </Grid>

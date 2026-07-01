@@ -65,11 +65,25 @@ namespace EasyTABS.Converters
     }
 
     // Гліф play/pause залежно від стану відтворення.
-    public class PlayPauseGlyphConverter : IValueConverter
+    // Іконка play/pause для MauiIcons залежно від стану відтворення.
+    public class PlayPauseIconConverter : IValueConverter
     {
-        // Material Symbols: pause = \ue034, play_arrow = \ue037
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-            => (value is bool playing && playing) ? "\ue034" : "\ue037";
+            => (value is bool playing && playing)
+                ? MauiIcons.Material.MaterialIcons.Pause
+                : MauiIcons.Material.MaterialIcons.PlayArrow;
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
+    // Іконка гучності/мьюту для MauiIcons.
+    public class MuteIconConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => (value is bool muted && muted)
+                ? MauiIcons.Material.MaterialIcons.VolumeOff
+                : MauiIcons.Material.MaterialIcons.VolumeUp;
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             => throw new NotSupportedException();

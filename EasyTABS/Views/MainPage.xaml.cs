@@ -1,4 +1,5 @@
 using EasyTABS.ViewModels;
+using MauiIcons.Material;
 
 namespace EasyTABS.Views
 {
@@ -7,6 +8,7 @@ namespace EasyTABS.Views
         public MainPage()
         {
             InitializeComponent();
+            _ = new MauiIcons.Core.MauiIcon(); // обхід бага MAUI з URL-namespace
         }
 
         protected override async void OnAppearing()

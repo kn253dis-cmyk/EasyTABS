@@ -1,7 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EasyTABS.ViewModels"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="EasyTABS.Views.LoginPage"
              x:DataType="vm:LoginViewModel"
              Shell.NavBarIsVisible="False"
@@ -12,7 +13,6 @@
     </ContentPage.BindingContext>
 
     <Grid>
-        <!-- Градієнтний фон -->
         <Grid.Background>
             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                 <GradientStop Color="#1E1E24" Offset="0" />
@@ -34,16 +34,13 @@
 
                 <VerticalStackLayout Spacing="0">
 
-                    <!-- Іконка користувача через шрифт Material Symbols -->
-                    <Label Text=""
-                           FontFamily="MaterialSymbols"
-                           FontSize="80"
-                           TextColor="#8A2BE2"
-                           HorizontalOptions="Center"
-                           Margin="0,0,0,10" />
-                    
+                    <mi:MauiIcon Icon="{mi:Material AccountCircle}"
+                                 IconSize="80"
+                                 IconColor="#8A2BE2"
+                                 HorizontalOptions="Center"
+                                 Margin="0,0,0,10" />
 
-                        <Label Text="Ласкаво просимо"
+                    <Label Text="Ласкаво просимо"
                            FontSize="26"
                            FontAttributes="Bold"
                            TextColor="White"
@@ -55,26 +52,34 @@
                            HorizontalOptions="Center"
                            Margin="0,5,0,32" />
 
-                    <!-- Поле логіна -->
                     <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,20">
-                        <Entry Placeholder="Логін або Email"
-                               Text="{Binding Login}"
-                               TextColor="White"
-                               PlaceholderColor="#808080"
-                               BackgroundColor="Transparent"
-                               FontSize="16"
-                               Keyboard="Email" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Email}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Margin="10,0,15,0"
+                                   Placeholder="Логін або Email"
+                                   Text="{Binding Login}"
+                                   TextColor="White"
+                                   PlaceholderColor="#808080"
+                                   BackgroundColor="Transparent"
+                                   FontSize="16"
+                                   Keyboard="Email" />
+                        </Grid>
                     </Border>
 
-                    <!-- Поле пароля -->
                     <Border Style="{StaticResource FieldBorder}" Margin="0,0,0,10">
-                        <Entry Placeholder="Пароль"
-                               Text="{Binding Password}"
-                               IsPassword="True"
-                               TextColor="White"
-                               PlaceholderColor="#808080"
-                               BackgroundColor="Transparent"
-                               FontSize="16" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <mi:MauiIcon Grid.Column="0" Icon="{mi:Material Lock}" IconColor="#808080" IconSize="22" Margin="15,0,0,0" VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Margin="10,0,15,0"
+                                   Placeholder="Пароль"
+                                   Text="{Binding Password}"
+                                   IsPassword="True"
+                                   TextColor="White"
+                                   PlaceholderColor="#808080"
+                                   BackgroundColor="Transparent"
+                                   FontSize="16" />
+                        </Grid>
                     </Border>
 
                     <Button Text="Забули пароль?"
@@ -92,14 +97,18 @@
                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
                            Margin="0,0,0,12" />
 
-                    <Button Text="УВІЙТИ"
-                            Command="{Binding LoginCommand}"
-                            HeightRequest="55"
-                            FontSize="18"
-                            FontAttributes="Bold"
-                            BackgroundColor="#8A2BE2"
-                            TextColor="White"
-                            CornerRadius="12" />
+                    <Border BackgroundColor="#8A2BE2" HeightRequest="55" Stroke="Transparent">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding LoginCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                            <mi:MauiIcon Icon="{mi:Material Login}" IconColor="White" IconSize="24" />
+                            <Label Text="УВІЙТИ" TextColor="White" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
 
                     <HorizontalStackLayout HorizontalOptions="Center" Margin="0,28,0,0" Spacing="4">
                         <Label Text="Ще немає акаунту?"

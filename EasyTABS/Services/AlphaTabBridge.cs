@@ -15,6 +15,15 @@ namespace EasyTABS.Services
     {
         public int Index { get; set; }
         public string Name { get; set; } = string.Empty;
+        public int Bars { get; set; }
+        public int Strings { get; set; } = 6;
+        public bool HasNotes { get; set; }
+
+        // Для зручного відображення у списку доріжок.
+        public string DisplayName => $"{Index + 1}. {Name}";
+        public string Details => HasNotes
+            ? $"{Bars} тактів · {Strings} струн"
+            : $"{Bars} тактів · без нот";
     }
 
     // Позиція відтворення (мс).
@@ -103,11 +112,17 @@ namespace EasyTABS.Services
                             Tempo = root.GetProperty("tempo").GetDouble()
                         };
                         foreach (var t in root.GetProperty("tracks").EnumerateArray())
-                            info.Tracks.Add(new TrackInfo
+                        {
+                            var track = new TrackInfo
                             {
                                 Index = t.GetProperty("index").GetInt32(),
                                 Name = t.GetProperty("name").GetString() ?? string.Empty
-                            });
+                            };
+                            if (t.TryGetProperty("bars", out var bars)) track.Bars = bars.GetInt32();
+                            if (t.TryGetProperty("strings", out var str)) track.Strings = str.GetInt32();
+                            if (t.TryGetProperty("hasNotes", out var hn)) track.HasNotes = hn.GetBoolean();
+                            info.Tracks.Add(track);
+                        }
                         ScoreLoaded?.Invoke(info);
                     }
                     catch { }

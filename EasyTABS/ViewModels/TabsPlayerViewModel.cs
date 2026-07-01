@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using EasyTABS.Services;
 
@@ -43,6 +44,11 @@ namespace EasyTABS.ViewModels
 
         public ObservableCollection<TrackInfo> Tracks { get; } = new();
         private TrackInfo? _selectedTrack;
+        private bool _isTrackListVisible;
+        private string _tracksSummary = "Доріжки";
+
+        public bool IsTrackListVisible { get => _isTrackListVisible; set => SetProperty(ref _isTrackListVisible, value); }
+        public string TracksSummary { get => _tracksSummary; set => SetProperty(ref _tracksSummary, value); }
 
         public int SongId
         {
@@ -103,6 +109,8 @@ namespace EasyTABS.ViewModels
         public ICommand ToggleMetronomeCommand { get; }
         public ICommand ToggleSynthCommand { get; }
         public ICommand ToggleNoteCheckCommand { get; }
+        public ICommand ToggleTrackListCommand { get; }
+        public ICommand SelectTrackCommand { get; }
         public ICommand BackCommand { get; }
 
         public TabsPlayerViewModel()
@@ -129,6 +137,20 @@ namespace EasyTABS.ViewModels
             {
                 ToggleNoteCheck();
                 return Task.CompletedTask;
+            });
+            ToggleTrackListCommand = new RelayCommand(_ =>
+            {
+                IsTrackListVisible = !IsTrackListVisible;
+                return Task.CompletedTask;
+            });
+            SelectTrackCommand = new RelayCommand(async o =>
+            {
+                if (o is TrackInfo track)
+                {
+                    SelectedTrack = track;
+                    IsTrackListVisible = false;
+                    if (_engineReady) await (_bridge?.SetTrackAsync(track.Index) ?? Task.CompletedTask);
+                }
             });
             BackCommand = new RelayCommand(async _ =>
             {
@@ -208,7 +230,19 @@ namespace EasyTABS.ViewModels
                 foreach (var t in info.Tracks)
                     Tracks.Add(t);
 
-                SelectedTrack = Tracks.Count > 0 ? Tracks[0] : null;
+                // Активуємо першу доріжку з нотами (якщо є), інакше просто першу.
+                var firstWithNotes = Tracks.FirstOrDefault(t => t.HasNotes) ?? Tracks.FirstOrDefault();
+                SelectedTrack = firstWithNotes;
+                if (firstWithNotes is not null && _engineReady)
+                    _ = _bridge?.SetTrackAsync(firstWithNotes.Index);
+
+                TracksSummary = Tracks.Count switch
+                {
+                    0 => "Немає доріжок",
+                    1 => "1 доріжка",
+                    _ => $"{Tracks.Count} доріжок"
+                };
+
                 StatusMessage = string.Empty;
             });
         }
