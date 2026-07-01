@@ -62,11 +62,21 @@ namespace EasyTABS.ViewModels
         {
             try
             {
+                var imageTypes = new FilePickerFileType(
+                    new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                { DevicePlatform.WinUI, new[] { ".png", ".jpg", ".jpeg" } },
+                { DevicePlatform.Android, new[] { "image/png", "image/jpeg" } },
+                { DevicePlatform.iOS, new[] { "public.image" } },
+                { DevicePlatform.MacCatalyst, new[] { "public.image" } },
+                    });
+
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
                     PickerTitle = "Оберіть обкладинку",
-                    FileTypes = FilePickerFileType.Images
+                    FileTypes = imageTypes
                 });
+
                 if (result is not null)
                     _coverPath = result.FullPath;
             }
@@ -117,7 +127,7 @@ namespace EasyTABS.ViewModels
                 var inner = ex;
                 while (inner.InnerException is not null) inner = inner.InnerException;
                 ErrorMessage = $"Не вдалося зберегти: {inner.Message}";
-                System.Diagnostics.Debug.WriteLine($"AddSong FULL: {ex}");
+                //System.Diagnostics.Debug.WriteLine($"AddSong FULL: {ex}");
             }
         }
     }
